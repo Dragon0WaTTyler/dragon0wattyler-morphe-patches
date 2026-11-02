@@ -72,16 +72,21 @@ public class GroupNativeUiTest {
     private void layout() { root.measure(View.MeasureSpec.makeMeasureSpec(500, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(900, View.MeasureSpec.EXACTLY)); root.layout(0, 0, 500, 900); }
     @Test public void customGroupHidesOnlyOwnedNativeFiltersAndCarouselWithoutGap() {
         binding.setMode(true, true); layout();
-        assertEquals(View.GONE, filters.getVisibility()); assertEquals(View.GONE, carousel.getVisibility()); assertEquals(View.VISIBLE, toolbar.getVisibility());
+        assertEquals(View.GONE, filters.getVisibility()); assertNull(carousel.getParent()); assertEquals(View.VISIBLE, toolbar.getVisibility());
         assertEquals(56, content.getTop()); assertEquals(View.VISIBLE, home.getVisibility());
     }
     @Test public void allGroupsRestoresOriginalNativeFiltersAndKeepsCarouselRemoved() {
         binding.setMode(true, true); binding.setMode(true, false); layout();
-        assertEquals(View.VISIBLE, filters.getVisibility()); assertEquals(View.GONE, carousel.getVisibility()); assertEquals(104, content.getTop());
+        assertEquals(View.VISIBLE, filters.getVisibility()); assertNull(carousel.getParent()); assertEquals(104, content.getTop());
     }
     @Test public void leavingTabOrDisablingRestoresExactOriginalVisibility() {
         filters.setVisibility(View.INVISIBLE); binding.setMode(true, true); binding.setMode(false, false);
-        assertEquals(View.INVISIBLE, filters.getVisibility()); assertEquals(View.VISIBLE, carousel.getVisibility()); assertEquals(View.VISIBLE, home.getVisibility());
+        assertEquals(View.INVISIBLE, filters.getVisibility()); assertSame(root, carousel.getParent()); assertEquals(1, root.indexOfChild(carousel)); assertEquals(View.VISIBLE, home.getVisibility());
+    }
+    @Test public void oneCachedSubscriptionsHostCannotRestoreCarouselWhileAnotherIsActive() {
+        GroupsNativeChrome second = new GroupsNativeChrome(root, content);
+        binding.setMode(true, true); second.setMode(true, true); binding.setMode(false, false);
+        assertNull(carousel.getParent()); second.release(); assertSame(root, carousel.getParent());
     }
     @Test public void reusedNativeRootThatContainsContentIsNeverHidden() {
         GroupsNativeChrome.onCarouselCreated(root); binding.setMode(true, true); assertEquals(View.VISIBLE, root.getVisibility());
@@ -138,12 +143,13 @@ public class GroupNativeUiTest {
         images.bindImage(image, GroupMetadataTest.AVATAR + "&bad", true); jobs.remove().run(); Shadows.shadowOf(Looper.getMainLooper()).idle();
         assertNull(image.getDrawable()); assertEquals(View.VISIBLE, initials.getVisibility());
     }
-    @Test public void nativeCarouselInsideOriginalFeedCanBeRemovedWithoutHidingCustomContent() {
+    @Test public void nativeCarouselInsideOriginalFeedIsDetachedWithoutHidingCustomContentAndRestored() {
         FrameLayout nativeOriginal = new FrameLayout(activity); NativeRow nativeCarousel = new NativeRow(activity); nativeOriginal.addView(nativeCarousel);
         ((FrameLayout) content).addView(nativeOriginal); GroupsNativeChrome.onCarouselCreated(nativeCarousel);
         GroupsNativeChrome nested = new GroupsNativeChrome(root, content, nativeOriginal);
-        try { nested.setMode(true, false); assertEquals(View.GONE, nativeCarousel.getVisibility()); assertEquals(View.VISIBLE, nativeOriginal.getVisibility()); assertEquals(View.VISIBLE, content.getVisibility()); }
+        try { nested.setMode(true, false); assertNull(nativeCarousel.getParent()); assertEquals(View.VISIBLE, nativeOriginal.getVisibility()); assertEquals(View.VISIBLE, content.getVisibility()); }
         finally { nested.release(); }
+        assertSame(nativeOriginal, nativeCarousel.getParent()); assertEquals(0, nativeOriginal.indexOfChild(nativeCarousel));
     }
     @Test public void nativeVideoAndChannelNavigationRetainsSamePackageAndStableId() {
         GroupUi.video(activity, GroupMetadataTest.ID); android.content.Intent video = Shadows.shadowOf(activity).getNextStartedActivity();

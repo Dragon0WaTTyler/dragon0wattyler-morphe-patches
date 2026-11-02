@@ -26,11 +26,22 @@ import java.util.WeakHashMap;
 public final class GroupsNativeChrome implements ViewTreeObserver.OnPreDrawListener, View.OnAttachStateChangeListener {
     private static final Handler main = new Handler(Looper.getMainLooper());
     private static final Map<View, Boolean> filterRoots = new WeakHashMap<>(), carouselRoots = new WeakHashMap<>();
+    private static final Map<GroupsNativeChrome, Boolean> activeBindings = new WeakHashMap<>();
+    private static final Map<View, DetachedCarousel> detachedCarousels = new WeakHashMap<>();
     private final WeakReference<View> root, content, nativeContent;
     private final Map<View, Integer> changed = new WeakHashMap<>();
     private boolean active, group;
     private ViewTreeObserver observer;
     public static final class FilterMarker { }
+    private static final class DetachedCarousel {
+        final WeakReference<ViewGroup> parent;
+        final int index, visibility;
+        final ViewGroup.LayoutParams params;
+        DetachedCarousel(ViewGroup parent, View view) {
+            this.parent = new WeakReference<>(parent); index = parent.indexOfChild(view);
+            visibility = view.getVisibility(); params = view.getLayoutParams();
+        }
+    }
     GroupsNativeChrome(View nativeRoot, View content) {
         this(nativeRoot, content, null);
     }
@@ -64,18 +75,21 @@ public final class GroupsNativeChrome implements ViewTreeObserver.OnPreDrawListe
             }
         });
     }
-    public static void onCarouselCreated(View view) { if (view != null) carouselRoots.put(view, true); }
+    public static void onCarouselCreated(View view) {
+        if (view != null) { carouselRoots.put(view, true); syncCarousels(); }
+    }
     public static int carouselWidth(int original) {
         return Settings.POCKETTUBE_GROUPS.get() && NavigationBar.NavigationButton.getSelectedNavigationButton() == NavigationBar.NavigationButton.SUBSCRIPTIONS ? 0 : original;
     }
-    void setMode(boolean active, boolean group) { this.active = active; this.group = group; apply(); }
+    void setMode(boolean active, boolean group) {
+        this.active = active; this.group = group; activeBindings.put(this, active); syncCarousels(); apply();
+    }
     private void apply() {
         View page = root.get(), inner = content.get();
         if (!active || page == null || inner == null) { restore(); return; }
         for (View value : new ArrayList<>(changed.keySet())) {
             if (!GroupChromeBinding.owns(page, value) || (!group && filterRoots.containsKey(value))) restore(value);
         }
-        for (View value : new ArrayList<>(carouselRoots.keySet())) hideIfOwned(page, inner, value);
         if (group) for (View value : new ArrayList<>(filterRoots.keySet())) hideIfOwned(page, inner, value);
     }
     private void hideIfOwned(View page, View inner, View view) {
@@ -88,11 +102,40 @@ public final class GroupsNativeChrome implements ViewTreeObserver.OnPreDrawListe
     }
     private void restore(View view) { Integer prior = changed.remove(view); if (prior != null && view.getVisibility() == View.GONE) view.setVisibility(prior); }
     private void restore() { for (View value : new ArrayList<>(changed.keySet())) restore(value); }
+    private static void syncCarousels() {
+        for (View carousel : new ArrayList<>(carouselRoots.keySet())) {
+            boolean ownedByActivePage = false;
+            for (GroupsNativeChrome binding : new ArrayList<>(activeBindings.keySet())) {
+                if (!Boolean.TRUE.equals(activeBindings.get(binding))) continue;
+                View page = binding.root.get(), inner = binding.content.get();
+                DetachedCarousel detached = detachedCarousels.get(carousel);
+                View parent = detached == null ? null : detached.parent.get();
+                boolean belongs = page != null && (parent == null ? GroupChromeBinding.owns(page, carousel) : GroupChromeBinding.owns(page, parent));
+                if (page != null && inner != null && carousel != page && belongs && !GroupChromeBinding.owns(carousel, inner)) {
+                    ownedByActivePage = true; break;
+                }
+            }
+            if (ownedByActivePage) detachCarousel(carousel); else restoreCarousel(carousel);
+        }
+    }
+    private static void detachCarousel(View carousel) {
+        if (detachedCarousels.containsKey(carousel) || !(carousel.getParent() instanceof ViewGroup)) return;
+        ViewGroup parent = (ViewGroup) carousel.getParent(); detachedCarousels.put(carousel, new DetachedCarousel(parent, carousel));
+        parent.removeView(carousel);
+    }
+    private static void restoreCarousel(View carousel) {
+        DetachedCarousel detached = detachedCarousels.remove(carousel); if (detached == null) return;
+        ViewGroup parent = detached.parent.get();
+        if (parent != null && carousel.getParent() == null) {
+            parent.addView(carousel, Math.max(0, Math.min(detached.index, parent.getChildCount())), detached.params);
+            carousel.setVisibility(detached.visibility);
+        }
+    }
     void release() {
-        restore(); View view = root.get(); if (view != null) view.removeOnAttachStateChangeListener(this);
+        activeBindings.remove(this); syncCarousels(); restore(); View view = root.get(); if (view != null) view.removeOnAttachStateChangeListener(this);
         if (observer != null && observer.isAlive()) observer.removeOnPreDrawListener(this); observer = null;
     }
     public boolean onPreDraw() { apply(); return true; }
-    public void onViewAttachedToWindow(View view) { if (observer != null && observer.isAlive()) observer.removeOnPreDrawListener(this); observer = view.getViewTreeObserver(); observer.addOnPreDrawListener(this); apply(); }
-    public void onViewDetachedFromWindow(View view) { restore(); if (observer != null && observer.isAlive()) observer.removeOnPreDrawListener(this); observer = null; }
+    public void onViewAttachedToWindow(View view) { if (observer != null && observer.isAlive()) observer.removeOnPreDrawListener(this); observer = view.getViewTreeObserver(); observer.addOnPreDrawListener(this); activeBindings.put(this, active); syncCarousels(); apply(); }
+    public void onViewDetachedFromWindow(View view) { activeBindings.put(this, false); syncCarousels(); restore(); if (observer != null && observer.isAlive()) observer.removeOnPreDrawListener(this); observer = null; }
 }

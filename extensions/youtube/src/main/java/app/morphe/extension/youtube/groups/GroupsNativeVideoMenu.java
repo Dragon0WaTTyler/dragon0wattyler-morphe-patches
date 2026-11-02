@@ -15,6 +15,7 @@ import app.morphe.extension.youtube.settings.Settings;
 public final class GroupsNativeVideoMenu {
     private static WeakReference<Activity> activity = new WeakReference<>(null);
     private static long hostGeneration;
+    private static boolean establishedHost;
     private static Pending pending;
     private static WeakReference<java.util.Map<?, ?>> verifiedMap = new WeakReference<>(null);
     private static String verifiedId;
@@ -29,10 +30,16 @@ public final class GroupsNativeVideoMenu {
         }
     }
     private static final NativeMenuRegistry registry = new NativeMenuRegistry(SystemClock::uptimeMillis, () ->
-            Settings.POCKETTUBE_GROUPS.get() && activity.get() != null && !AuthUtils.isIncognito()
+            Settings.POCKETTUBE_GROUPS.get() && !AuthUtils.isIncognito()
                     ? new NativeMenuRegistry.Scope(hostGeneration, AuthUtils.getContextGeneration()) : null);
     static void host(Activity host) {
-        if (activity.get() != host) { registry.clear(); pending = null; verifiedId = null; verifiedMap.clear(); hostGeneration++; activity = new WeakReference<>(host); }
+        if (activity.get() == host) return;
+        // Native feed handlers can be built before Groups first wraps Subscriptions. Keep those
+        // same-account, weak capabilities through the initial host bind; later host changes clear them.
+        boolean firstHost = !establishedHost && activity.get() == null && host != null;
+        establishedHost = true;
+        if (!firstHost) { registry.clear(); pending = null; verifiedId = null; verifiedMap.clear(); hostGeneration++; }
+        activity = new WeakReference<>(host);
     }
     static void pause(Activity host) { if (activity.get() == host) host(null); }
     /** Native constructor injection. Does not modify or consume any native command. */
