@@ -1,1 +1,3 @@
-// Root build configuration for morphe-patches-template
+plugins {
+    alias(libs.plugins.android.library) apply false
+}

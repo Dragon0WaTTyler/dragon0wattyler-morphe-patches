@@ -1,21 +1,47 @@
 Morphe NOTICE
+
+https://github.com/MorpheApp/morphe-patches
+
 =============
 
-7c. Project Name Restriction
-----------------------------
+GPLv3 Section 7b: Preservation of User Notices
 
-This license does not grant permission to use the name "Morphe", or any
-name, logo, or branding that is confusingly similar, as the name or
-primary identifying mark of any modified version, fork, or derivative work.
+All derivative works (source code and binaries) must include this
+NOTICE text and provide it to the software user.
 
-Any redistribution or derivative work must adopt a distinct name and
-branding that clearly differentiates it from the Morphe project and does
-not cause confusion as to source or origin.
+Portions of this software are provided "AS IS" by the Morphe software project.
+Any express or implied warranties, including the implied warranties of
+merchantability and fitness for a particular purpose, are disclaimed.
 
-References to Morphe are permitted solely for descriptive compatibility
-purposes (e.g., "compatible with Morphe" or "XYZ patches for use with Morphe"),
-provided that such references:
 
-- Are accurate, factual, and non-misleading;
-- Do not suggest authorship by the Morphe project; and
-- Appear only in a secondary or descriptive context, not as part of the product or project name.
+GPLv3 Section 7c: Prohibiting Misrepresentation of Origin
+
+You are prohibited from misrepresenting the origin of the Program,
+and modified versions of the Program must be identified and marked in
+reasonable ways as different from the original version so as not to cause
+confusion regarding their origin.
+
+
+GPLv3 Section 7e: Declining Grant of Trademark Rights
+
+This License does not grant any rights or permission under trademark law
+to use the name "Morphe" or any of the Program's trade names, trademarks,
+service marks, or logos.
+
+
+Independent Subscription Groups derivative — groups.6.1
+===================================================
+Modified 2026-11-01–2026-11-02. Independent native Subscription Groups additions,
+including group import/management, automatic recent-upload coverage, presentation
+metadata, channel image caching, group content filters and scoped page chrome.
+This derivative is not an official Morphe or PocketTube release. Original notices,
+licensing terms and upstream attribution are preserved. Complete corresponding
+sources and the exact build dependency sources accompany this candidate.
+
+V6 modified 2026-11-02: supported native action adapters, actual HD metadata,
+local watched filtering and per-group content-filter persistence. Full stock
+overflow, account-wide history and target-device validation are not claimed.
+
+V6.1 modified2026-11-02: experimental exact native-menu binding reuse, scoped
+Morphe flyout identity and separate local watched actions. Native target schema,
+rendering/actions and universal native-menu coverage remain unverified.
