@@ -1,3 +1,9 @@
+## [1.0.0-dev.4](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* **groups:** collapse carousel gap and capture native menu handlers ([cec45d3](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/cec45d3da819f47669ed396b9531c8dd118987b8))
+
 ## [1.0.0-dev.3](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2026-11-02)
 
 ### ✨ New Features
