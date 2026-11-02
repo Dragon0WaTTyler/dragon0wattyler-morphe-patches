@@ -1,0 +1,8 @@
+// Optional source build: put the exact pinned plugin source beside this repository.
+// The root settings already discover sibling morphe-patcher and morphe-patches-library.
+gradle.beforeSettings { settings ->
+    if (settings.settingsDir.name == 'subscription-groups-patches') {
+        def plugin = new File(settings.settingsDir, '../morphe-patches-gradle-plugin')
+        if (plugin.isDirectory()) settings.pluginManagement.includeBuild(plugin.canonicalPath)
+    }
+}
