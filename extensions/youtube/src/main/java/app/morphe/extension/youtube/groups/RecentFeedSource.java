@@ -39,8 +39,9 @@ public final class RecentFeedSource implements FeedSource {
     private final Map<String, CompletableFuture<List<GroupVideo>>> flights = new ConcurrentHashMap<>();
     private final AtomicLong cooldownUntil = new AtomicLong();
     private final Map<String, String> channelNames = new ConcurrentHashMap<>();
-    private RecentFeedSource(Context context) { this(new File(context.getCacheDir(), "subscription-groups-rss-v2")); }
-    RecentFeedSource(File cacheDirectory) { cache = new ChannelFeedCache(cacheDirectory); }
+    private RecentFeedSource(Context context) { this(new File(context.getFilesDir(), "subscription-groups-feed-v1"), new File(context.getCacheDir(), "subscription-groups-rss-v2")); }
+    RecentFeedSource(File cacheDirectory) { this(cacheDirectory, null); }
+    RecentFeedSource(File cacheDirectory, File legacyCacheDirectory) { cache = new ChannelFeedCache(cacheDirectory, legacyCacheDirectory); }
     @Override public FeedSource.Window cached(String channel) {
         FeedSource.Window window = cache.get(channel); if (window != null) remember(channel, window.videos); return window;
     }
@@ -62,6 +63,7 @@ public final class RecentFeedSource implements FeedSource {
         try {
             long delay = delayMillis(System.currentTimeMillis());
             if (delay > 0) throw new FeedSource.Failure("Server cooldown", true, delay);
+            cache.recordAttempt(channel, System.currentTimeMillis());
             List<GroupVideo> result = download(channel); own.complete(result); return result;
         } catch (IOException failure) { own.completeExceptionally(failure); throw failure; }
         finally { flights.remove(channel, own); }
@@ -74,9 +76,12 @@ public final class RecentFeedSource implements FeedSource {
             throw failure;
         }
         String xml = new String(data, StandardCharsets.UTF_8); List<GroupVideo> result = YouTubeAtomFeed.parse(xml, channel);
-        remember(channel, result);
-        cache.put(channel, data, result, System.currentTimeMillis());
-        return result;
+        long fetchedAt = System.currentTimeMillis();
+        cache.put(channel, data, result, fetchedAt);
+        FeedSource.Window history = cache.get(channel);
+        List<GroupVideo> available = history == null ? result : history.videos;
+        remember(channel, available);
+        return available;
     }
     private void remember(String channel, List<GroupVideo> result) {
         if (!result.isEmpty() && !result.get(0).channelName.isEmpty()) channelNames.put(channel, result.get(0).channelName);

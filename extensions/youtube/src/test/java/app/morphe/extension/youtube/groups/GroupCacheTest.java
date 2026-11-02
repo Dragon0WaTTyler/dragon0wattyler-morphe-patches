@@ -39,4 +39,38 @@ public class GroupCacheTest {
         Files.write(file.toPath(), new byte[YouTubeAtomFeed.MAX_BYTES + 1]); assertNull(new ChannelFeedCache(folder.getRoot()).get(CHANNEL));
     }
     @Test public void futureDatedCacheDoesNotCountAsFresh() { assertFalse(new FeedSource.Window(List.of(), 10000).fresh(9000)); }
+    @Test public void refreshedFiniteWindowRetainsPreviouslySeenVideosAcrossRestart() throws Exception {
+        ChannelFeedCache first = new ChannelFeedCache(folder.getRoot());
+        GroupVideo older = new GroupVideo("abcdefghijk", CHANNEL, "Old title", "Channel", "https://i.ytimg.com/old.jpg", 1000, 1);
+        GroupVideo newer = new GroupVideo("bcdefghijkl", CHANNEL, "New title", "Channel", "https://i.ytimg.com/new.jpg", 2000, 2);
+        first.put(CHANNEL, new byte[0], List.of(older), 10_000);
+        first.put(CHANNEL, new byte[0], List.of(newer), 20_000);
+
+        FeedSource.Window reopened = new ChannelFeedCache(folder.getRoot()).get(CHANNEL);
+        assertNotNull(reopened);
+        assertEquals(2, reopened.videos.size());
+        assertEquals("bcdefghijkl", reopened.videos.get(0).id);
+        assertEquals("abcdefghijk", reopened.videos.get(1).id);
+        assertEquals(1000, reopened.videos.get(1).published);
+        assertEquals(20_000, reopened.fetchedAt);
+    }
+    @Test public void duplicateRefreshUpdatesPresentationWithoutChangingPublicationTimestamp() throws Exception {
+        ChannelFeedCache cache = new ChannelFeedCache(folder.getRoot());
+        cache.put(CHANNEL, new byte[0], List.of(new GroupVideo("abcdefghijk", CHANNEL, "Original", "Channel", "", 1000, 1)), 10_000);
+        cache.put(CHANNEL, new byte[0], List.of(new GroupVideo("abcdefghijk", CHANNEL, "Updated", "Channel", "", 9000, 5)), 20_000);
+        GroupVideo retained = new ChannelFeedCache(folder.getRoot()).get(CHANNEL).videos.get(0);
+        assertEquals("Updated", retained.title);
+        assertEquals(1000, retained.published);
+        assertEquals(5, retained.views);
+    }
+    @Test public void historyRetentionIsBoundedPerChannel() throws Exception {
+        ChannelFeedCache cache = new ChannelFeedCache(folder.getRoot());
+        java.util.ArrayList<GroupVideo> videos = new java.util.ArrayList<>();
+        for (int i = 0; i < ChannelFeedCache.MAX_VIDEOS_PER_CHANNEL + 10; i++) {
+            String id = String.format(java.util.Locale.ROOT, "%011d", i);
+            videos.add(new GroupVideo(id, CHANNEL, "Video", "Channel", "", i + 1, -1));
+        }
+        cache.put(CHANNEL, new byte[0], videos, 100_000);
+        assertEquals(ChannelFeedCache.MAX_VIDEOS_PER_CHANNEL, new ChannelFeedCache(folder.getRoot()).get(CHANNEL).videos.size());
+    }
 }
