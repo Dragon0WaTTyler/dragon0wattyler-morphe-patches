@@ -69,6 +69,10 @@ final class GroupUi {
         view.setBackground(new RippleDrawable(ColorStateList.valueOf(0x337f7f7f), null, null));
         return view;
     }
+    static Drawable selectorBackground(Context c) {
+        GradientDrawable face = new GradientDrawable(); face.setCornerRadius(dp(c, 10)); face.setColor(control());
+        return new RippleDrawable(ColorStateList.valueOf(0x337f7f7f), face, null);
+    }
     private static TextView actionText(Context c, CharSequence label, Runnable action) {
         TextView view = new TextView(c) {
             @Override public CharSequence getAccessibilityClassName() { return android.widget.Button.class.getName(); }

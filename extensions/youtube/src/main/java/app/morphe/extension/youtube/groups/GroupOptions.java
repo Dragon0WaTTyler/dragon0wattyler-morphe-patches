@@ -11,7 +11,7 @@ import static app.morphe.extension.shared.StringRef.str;
 
 final class GroupOptions {
     static final List<String> SELECTION = List.of("default", "remember", "selector", "feed");
-    static final List<String> APPEARANCE = List.of("style", "spacing", "icons", "counts", "order", "show_empty", "show_all", "placement", "remember_scroll");
+    static final List<String> APPEARANCE = List.of("icons", "counts", "order", "show_empty", "placement");
     static final List<String> FEED = List.of("sort", "range", "remember_filters", "hide_watched", "remember_content", "default_content", "clear_watched");
     static final List<String> ALL;
     static { List<String> keys = new ArrayList<>(SELECTION); keys.addAll(APPEARANCE); keys.addAll(FEED); ALL = java.util.Collections.unmodifiableList(keys); }

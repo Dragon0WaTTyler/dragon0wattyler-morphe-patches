@@ -144,6 +144,7 @@ All channels are attempted automatically. Pending or failed channels mean group-
     <string name="morphe_pockettube_v2_feed_empty">No uploads in the loaded window for this date range. Load more channels or change the date range.</string>
     <string name="morphe_pockettube_v2_feed_empty_group">This group has no channels. Manage groups to add channels.</string>
     <string name="morphe_pockettube_v2_selector_label">Subscription groups</string>
+    <string name="morphe_pockettube_g8_group_label">Group: %1$s</string>
     <!-- Independent Subscription Groups addition, 2026-11-01. -->
     <string name="morphe_pockettube_groups_screen_title">PocketTube Groups</string>
     <string name="morphe_pockettube_groups_screen_summary">Import and browse local subscription groups</string>

@@ -3,19 +3,12 @@
  */
 package app.morphe.extension.youtube.groups;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +25,6 @@ final class SubscriptionsPage extends LinearLayout {
     private final LinearLayout header;
     private final GroupService service;
     private final GroupService.Listener observer = this::refresh;
-    private final Handler main = new Handler(Looper.getMainLooper());
     private final GroupFeedView feed;
     private final ExclusiveFeedHost content;
     private final GroupFilterBar filters;
@@ -44,14 +36,6 @@ final class SubscriptionsPage extends LinearLayout {
     private final ViewTreeObserver.OnGlobalLayoutListener visibility = () -> {
         boolean next = presented(); if (next != presented) { presented = next; refresh(); }
     };
-    private HorizontalScrollView scroll;
-    private final Runnable saveScroll = this::persistScroll;
-    private void persistScroll() {
-        if (scroll != null && service.ready() && service.library().preferences.enabled("remember_scroll")) {
-            String x = Integer.toString(scroll.getScrollX());
-            if (!x.equals(service.library().preferences.get("scroll_x"))) service.preference("scroll_x", x);
-        }
-    }
     SubscriptionsPage(View original, Object fragment, String browseId) {
         super(original.getContext()); this.original = original; owner = new WeakReference<>(fragment); this.browseId = browseId;
         setOrientation(VERTICAL); if (original.getLayoutParams() != null) setLayoutParams(original.getLayoutParams());
@@ -79,7 +63,7 @@ final class SubscriptionsPage extends LinearLayout {
     }
     void activityResumed(boolean value) { resumed = value; if (value) refresh(); else pause(); }
     private boolean presented() { return resumed && isShown() && isAttachedToWindow() && !NavigationBar.isSearchBarActive() && !PlayerType.getCurrent().isMaximizedOrFullscreen(); }
-    void pause() { if (feed != null) feed.pause(); main.removeCallbacks(saveScroll); saveScroll.run(); }
+    void pause() { if (feed != null) feed.pause(); }
     @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); service.observe(observer); getViewTreeObserver().addOnGlobalLayoutListener(visibility); refresh(); }
     @Override protected void onDetachedFromWindow() { service.remove(observer); if (getViewTreeObserver().isAlive()) getViewTreeObserver().removeOnGlobalLayoutListener(visibility); pause(); if (chrome != null) chrome.setActive(false); if (nativeChrome != null) nativeChrome.setMode(false, false); super.onDetachedFromWindow(); }
     @Override public void onVisibilityAggregated(boolean visible) { super.onVisibilityAggregated(visible); if (visible) refresh(); else pause(); }
@@ -124,13 +108,12 @@ final class SubscriptionsPage extends LinearLayout {
     private String signature(GroupLibrary data) {
         StringBuilder out = new StringBuilder(browseId).append('|').append(active).append('|').append(service.ready()).append('|')
                 .append(service.error()).append('|').append(GroupUi.background()).append('|').append(GroupUi.foreground()).append('|');
-        for (String key : List.of("style", "spacing", "icons", "counts", "show_all", "show_empty", "order", "selector", "feed")) out.append(data.preferences.get(key)).append('|');
+        for (String key : List.of("icons", "counts", "show_empty", "order", "selector", "feed")) out.append(data.preferences.get(key)).append('|');
         for (GroupLibrary.Entry group : data.ordered(false)) out.append(group.id).append(group.name).append(group.icon).append(group.pinned).append(group.channels.size()).append('|');
         return out.toString();
     }
     private void renderHeader(GroupLibrary data) {
-        int priorScroll = scroll == null ? Integer.parseInt(data.preferences.get("scroll_x")) : scroll.getScrollX();
-        header.removeAllViews(); scroll = null; header.setVisibility(VISIBLE); header.setBackgroundColor(GroupUi.background());
+        header.removeAllViews(); header.setVisibility(VISIBLE); header.setBackgroundColor(GroupUi.background());
         if (GroupBackup.isChannelId(browseId)) {
             header.addView(GroupUi.secondary(getContext(), str("morphe_pockettube_v2_assign"), () -> GroupsManagerDialog.show(GroupUi.activity(getContext()), browseId)));
             return;
@@ -141,41 +124,45 @@ final class SubscriptionsPage extends LinearLayout {
             header.addView(GroupUi.secondary(getContext(), str("morphe_pockettube_ux_groups_unavailable"), () -> GroupsManagerDialog.show(GroupUi.activity(getContext()), "")));
             return;
         }
-        List<String> ids = new ArrayList<>(), names = new ArrayList<>();
-        if (data.preferences.enabled("show_all") || active.isEmpty()) { ids.add(""); names.add(str("morphe_pockettube_g5_all_groups")); }
-        for (GroupLibrary.Entry group : data.ordered(true)) { ids.add(group.id); names.add(chip(group, data.preferences)); }
-        if (!active.isEmpty() && !ids.contains(active) && data.find(active) != null) { ids.add(active); names.add(chip(data.find(active), data.preferences)); }
+        List<String> ids = new ArrayList<>(); ids.add("");
+        for (GroupLibrary.Entry group : data.ordered(true)) ids.add(group.id);
         LinearLayout row = new LinearLayout(getContext()); row.setGravity(Gravity.CENTER_VERTICAL);
         if (!data.preferences.enabled("selector")) {
             if (!active.isEmpty()) row.addView(GroupUi.secondary(getContext(), str("morphe_pockettube_v2_original"), () -> select("")), new LayoutParams(0, GroupUi.dp(getContext(), 48), 1));
             else { header.setVisibility(GONE); return; }
-        } else if (data.preferences.get("style").equals("dropdown")) {
-            Spinner spinner = new Spinner(getContext()); spinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, names));
-            spinner.setSelection(Math.max(0, ids.indexOf(active))); spinner.setContentDescription(str("morphe_pockettube_v2_selector_label"));
-            spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                public void onNothingSelected(AdapterView<?> parent) { }
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) { if (!ids.get(position).equals(active)) select(ids.get(position)); }
-            }); row.addView(spinner, new LayoutParams(0, -2, 1));
         } else {
-            scroll = new HorizontalScrollView(getContext()); scroll.setHorizontalScrollBarEnabled(false);
-            LinearLayout chips = new LinearLayout(getContext()); int gap = data.preferences.get("spacing").equals("compact") ? 4 : 8;
-            chips.setPaddingRelative(GroupUi.dp(getContext(), 12), 0, GroupUi.dp(getContext(), 4), 0);
-            List<Integer> visible = new ArrayList<>(); for (int i = 0; i < Math.min(24, ids.size()); i++) visible.add(i);
-            int selectedIndex = ids.indexOf(active); if (selectedIndex >= 24) visible.add(selectedIndex);
-            for (int index : visible) {
-                String id = ids.get(index); TextView button = GroupUi.chip(getContext(), names.get(index), id.equals(active), () -> select(id));
-                button.setMaxWidth(Integer.MAX_VALUE);
-                LayoutParams params = new LayoutParams(-2, GroupUi.dp(getContext(), 48)); params.setMarginEnd(GroupUi.dp(getContext(), gap)); chips.addView(button, params);
-            }
-            if (ids.size() > 24) chips.addView(GroupUi.secondary(getContext(), str("morphe_pockettube_v2_more"), () -> GroupsManagerDialog.pick(GroupUi.activity(getContext()))), new LayoutParams(-2, GroupUi.dp(getContext(), 48)));
-            scroll.addView(chips); row.addView(scroll, new LayoutParams(0, -2, 1));
-            HorizontalScrollView current = scroll; scroll.post(() -> { if (current == scroll) current.scrollTo(priorScroll, 0); });
-            scroll.setOnTouchListener((view, event) -> { if (event.getActionMasked() == MotionEvent.ACTION_UP || event.getActionMasked() == MotionEvent.ACTION_CANCEL) { main.removeCallbacks(saveScroll); main.postDelayed(saveScroll, 300); } return false; });
+            GroupLibrary.Entry selected = data.find(active);
+            String label = active.isEmpty() || selected == null
+                    ? str("morphe_pockettube_g5_all_groups") + "  ▾"
+                    : String.format(java.util.Locale.getDefault(), str("morphe_pockettube_g8_group_label"), chip(selected, data.preferences)) + "  ▾";
+            TextView selector = GroupUi.secondary(getContext(), label, () -> showGroupPicker(data, ids));
+            selector.setContentDescription(str("morphe_pockettube_v2_selector_label"));
+            selector.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+            selector.setPadding(GroupUi.dp(getContext(), 16), 0, GroupUi.dp(getContext(), 16), 0);
+            selector.setBackground(GroupUi.selectorBackground(getContext()));
+            LayoutParams selectorParams = new LayoutParams(0, GroupUi.dp(getContext(), 44), 1);
+            selectorParams.setMargins(GroupUi.dp(getContext(), 12), GroupUi.dp(getContext(), 2), GroupUi.dp(getContext(), 8), GroupUi.dp(getContext(), 2));
+            row.addView(selector, selectorParams);
         }
         View overflow = GroupUi.overflow(getContext(), str("morphe_pockettube_ux_group_options"));
         overflow.setOnClickListener(this::showOptions);
         row.addView(overflow, new LayoutParams(GroupUi.dp(getContext(), 48), GroupUi.dp(getContext(), 48)));
         header.addView(row);
+    }
+    private void showGroupPicker(GroupLibrary data, List<String> ids) {
+        View anchor = header.getChildCount() > 0 && header.getChildAt(0) instanceof ViewGroup
+                ? ((ViewGroup) header.getChildAt(0)).getChildAt(0) : header;
+        PopupMenu menu = new PopupMenu(getContext(), anchor);
+        for (int position = 0; position < ids.size(); position++) {
+            String id = ids.get(position);
+            GroupLibrary.Entry group = id.isEmpty() ? null : data.find(id);
+            String title = group == null ? str("morphe_pockettube_g5_all_groups") : chip(group, data.preferences);
+            android.view.MenuItem item = menu.getMenu().add(0, position, position, title);
+            item.setCheckable(true).setChecked(id.equals(active));
+            item.setOnMenuItemClickListener(clicked -> { select(id); return true; });
+        }
+        menu.getMenu().setGroupCheckable(0, true, true);
+        menu.show();
     }
     private void showOptions(View anchor) {
         PopupMenu menu = new PopupMenu(getContext(), anchor);
