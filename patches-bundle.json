@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-02T19:59:32",
-  "description": "## [1.0.0-dev.2](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2026-11-02)\n\n### ✨ New Features\n\n* **groups:** retain per-channel feed history ([46472f5](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/46472f5449fb4bcfb232b3a1413d01e673b331d5))",
-  "download_url": "https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/download/v1.0.0-dev.2/patches-1.0.0-dev.2.mpp",
+  "created_at": "2026-11-02T20:26:45",
+  "description": "## [1.0.0-dev.3](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2026-11-02)\n\n### ✨ New Features\n\n* **groups:** add compact vertical group selector ([9ce10ca](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/9ce10cabfcda235fd49fc0f220e4e9e98445d3f0))",
+  "download_url": "https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/download/v1.0.0-dev.3/patches-1.0.0-dev.3.mpp",
   "signature_download_url": "",
-  "version": "1.0.0-dev.2"
+  "version": "1.0.0-dev.3"
 }

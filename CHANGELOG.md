@@ -1,3 +1,9 @@
+## [1.0.0-dev.3](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2026-11-02)
+
+### ✨ New Features
+
+* **groups:** add compact vertical group selector ([9ce10ca](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/9ce10cabfcda235fd49fc0f220e4e9e98445d3f0))
+
 ## [1.0.0-dev.2](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2026-11-02)
 
 ### ✨ New Features
