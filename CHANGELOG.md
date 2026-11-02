@@ -1,3 +1,9 @@
+## [1.0.0-dev.2](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2026-11-02)
+
+### ✨ New Features
+
+* **groups:** retain per-channel feed history ([46472f5](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/46472f5449fb4bcfb232b3a1413d01e673b331d5))
+
 ## 1.0.0-dev.1 (2026-11-02)
 
 ### ✨ New Features
