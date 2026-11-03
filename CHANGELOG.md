@@ -1,3 +1,9 @@
+## [1.0.0-dev.6](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* **blackmagic-camera:** attach photo controls after main screen ([80a0bd0](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/80a0bd0b7ddef833017d03b089d9b6bf1a3997f9))
+
 ## [1.0.0-dev.5](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2026-11-03)
 
 ### ✨ New Features

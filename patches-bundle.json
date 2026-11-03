@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-03T00:57:31",
-  "description": "## [1.0.0-dev.5](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2026-11-03)\n\n### ✨ New Features\n\n* **blackmagic-camera:** add photo capture patches ([462042f](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/462042f6149d39d816df9f99ad536200b1eb025f))",
-  "download_url": "https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/download/v1.0.0-dev.5/patches-1.0.0-dev.5.mpp",
+  "created_at": "2026-11-03T10:10:35",
+  "description": "## [1.0.0-dev.6](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2026-11-03)\n\n### 🐛 Bug Fixes\n\n* **blackmagic-camera:** attach photo controls after main screen ([80a0bd0](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/80a0bd0b7ddef833017d03b089d9b6bf1a3997f9))",
+  "download_url": "https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/download/v1.0.0-dev.6/patches-1.0.0-dev.6.mpp",
   "signature_download_url": "",
-  "version": "1.0.0-dev.5"
+  "version": "1.0.0-dev.6"
 }
