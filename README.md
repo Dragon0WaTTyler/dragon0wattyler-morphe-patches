@@ -4,6 +4,17 @@ An independent, growing collection of **Morphe patches for Android apps**, focus
 
 The patch list below shows the apps, patches, and versions included in the current release. Additional app support may be added over time.
 
+## App catalog
+
+Choose an app to see its features, supported versions, changelog and release downloads.
+
+| App / patch | Current status | Details | Releases |
+| --- | --- | --- | --- |
+| **YouTube — PocketTube Groups** | Development candidate | [Features, compatibility and limitations](apps/pockettube-groups.md) | [PocketTube V8.1 candidate](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.4) |
+| **Blackmagic Camera** | Planned; no published `.mpp` yet | [Patch status and future details](apps/blackmagic-camera.md) | Not released |
+
+Each app will eventually have its own repository and independent releases. **For now, the PocketTube assets are in this repository's existing shared Releases page.** This repository stays an active Morphe patch source during the migration. [How the split will work](docs/REPOSITORY_SPLIT.md).
+
 <a href="https://morphe.software/add-source?github=Dragon0WaTTyler/dragon0wattyler-morphe-patches"><img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe Manager" height="48"></a>
 
 ## Install or update in Morphe Manager
