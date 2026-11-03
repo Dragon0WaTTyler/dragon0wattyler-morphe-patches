@@ -19,6 +19,6 @@ Both use a rendered camera-pipeline frame and save JPEGs to Gallery. See the [im
 
 ## Runtime limitations
 
-Capture uses a downscaled 12-fps compositor output with a long edge of about 1280 pixels, rather than native-resolution sensor stills. LUT output follows the app's renderer, but saved-image matching against the preview—including custom LUTs—has not been confirmed on a physical device. Continuous video/audio recording, repeated captures, and high-resolution, HDR, and high-frame-rate workflows also require device testing.
+Capture uses PixelCopy on Blackmagic's displayed preview surface, at its current rendered dimensions and capped at 12 megapixels, rather than native-resolution sensor stills. Static inspection shows the app's preview renderer receives its active LUT-visibility state, so the copied frame is expected to include the displayed look without applying a second transform; saved-image matching—including custom LUTs—has not been confirmed on a physical device. Continuous video/audio recording, repeated captures, orientation, and high-resolution, HDR, and high-frame-rate workflows also require device testing.
 
 This is an experimental candidate, not a claim of device-verified behavior. Install the development prerelease only for testing.

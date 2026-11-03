@@ -30,20 +30,19 @@ internal object MainActivityOnDestroyFingerprint : Fingerprint(
     returnType = "V",
 )
 
-internal object VideoSessionRecorderStateFingerprint : Fingerprint(
-    definingClass = "Lcom/blackmagicdesign/android/camera/domain/h;",
-    name = "x",
-    parameters = listOf("Lcom/blackmagicdesign/android/recorder/BaseRecorder\$State;"),
-    returnType = "V",
+internal object MainScreenContentFingerprint : Fingerprint(
+    definingClass = "Lcom/blackmagicdesign/android/blackmagiccam/ui/MainActivity\$loadMainScreen\$1;",
+    name = "invokeSuspend",
+    parameters = listOf("Ljava/lang/Object;"),
+    returnType = "Ljava/lang/Object;",
+    filters = listOf(
+        methodCall("Lcv0;->a(Lbv0;Landroidx/compose/runtime/internal/a;)V"),
+    ),
 )
 
-internal object PipelineSurfaceManagerOutputsFingerprint : Fingerprint(
-    definingClass = "Lcom/blackmagicdesign/android/camera/domain/b;",
-    name = "b",
-    parameters = listOf(
-        "Loa6;",
-        "Landroid/util/Size;",
-        "Landroid/media/ImageReader;",
-    ),
-    returnType = "Lg85;",
+internal object CoreRecordingStateFingerprint : Fingerprint(
+    definingClass = "Lcom/blackmagicdesign/android/camera/model/s;",
+    name = "v",
+    parameters = listOf("Lcom/blackmagicdesign/android/utils/entity/CoreRecordingState;"),
+    returnType = "V",
 )

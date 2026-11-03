@@ -8,7 +8,7 @@ private const val EXTENSION_CLASS = "Lapp/morphe/extension/blackmagiccamera/Phot
 @Suppress("unused")
 val blackmagicCameraPhotoModePatch = bytecodePatch(
     name = "Blackmagic Camera — Enable Photo Mode",
-    description = "Adds a photo/video switch and saves LUT-rendered camera frames to Gallery at preview-output resolution.",
+    description = "Adds a photo/video selector; Photo Mode reveals a shutter that saves the displayed camera preview to Gallery.",
 ) {
     compatibleWith(COMPATIBILITY_BLACKMAGIC_CAMERA)
     dependsOn(blackmagicCameraCaptureRuntimePatch)

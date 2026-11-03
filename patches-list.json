@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.0-dev.5",
+  "version": "1.0.0-dev.6",
   "patches": [
     {
       "name": "AI channel filter",
@@ -558,7 +558,7 @@
     },
     {
       "name": "Blackmagic Camera — Enable Photo Mode",
-      "description": "Adds a photo/video switch and saves LUT-rendered camera frames to Gallery at preview-output resolution.",
+      "description": "Adds a photo/video selector; Photo Mode reveals a shutter that saves the displayed camera preview to Gallery.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -588,7 +588,7 @@
     },
     {
       "name": "Blackmagic Camera — Take Photos While Recording",
-      "description": "Adds a recording shutter that saves a separate LUT-rendered preview frame without changing the active recording session.",
+      "description": "Adds a shutter during active recording that copies the displayed preview without reconfiguring the camera session.",
       "default": true,
       "category": null,
       "compatiblePackages": [

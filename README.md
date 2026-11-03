@@ -29,7 +29,7 @@ The `dev` branch publishes prereleases through the official Morphe template work
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0-dev.5](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;198 patches total
+> **[v1.0.0-dev.6](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;198 patches total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;110 patches</summary>
 <br>
@@ -281,8 +281,8 @@ The `dev` branch publishes prereleases through the official Morphe template work
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Blackmagic Camera — Enable Photo Mode](#blackmagic-camera-enable-photo-mode) | Adds a photo/video switch and saves LUT-rendered camera frames to Gallery at preview-output resolution. |  |
-| [Blackmagic Camera — Take Photos While Recording](#blackmagic-camera-take-photos-while-recording) | Adds a recording shutter that saves a separate LUT-rendered preview frame without changing the active recording session. |  |
+| [Blackmagic Camera — Enable Photo Mode](#blackmagic-camera-enable-photo-mode) | Adds a photo/video selector; Photo Mode reveals a shutter that saves the displayed camera preview to Gallery. |  |
+| [Blackmagic Camera — Take Photos While Recording](#blackmagic-camera-take-photos-while-recording) | Adds a shutter during active recording that copies the displayed preview without reconfiguring the camera session. |  |
 
 </details>
 

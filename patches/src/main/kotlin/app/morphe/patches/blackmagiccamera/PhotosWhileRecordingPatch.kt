@@ -8,7 +8,7 @@ private const val EXTENSION_CLASS = "Lapp/morphe/extension/blackmagiccamera/Phot
 @Suppress("unused")
 val blackmagicCameraPhotosWhileRecordingPatch = bytecodePatch(
     name = "Blackmagic Camera — Take Photos While Recording",
-    description = "Adds a recording shutter that saves a separate LUT-rendered preview frame without changing the active recording session.",
+    description = "Adds a shutter during active recording that copies the displayed preview without reconfiguring the camera session.",
 ) {
     compatibleWith(COMPATIBILITY_BLACKMAGIC_CAMERA)
     dependsOn(blackmagicCameraCaptureRuntimePatch)
@@ -21,9 +21,9 @@ val blackmagicCameraPhotosWhileRecordingPatch = bytecodePatch(
             "invoke-static/range {p0 .. p0}, $EXTENSION_CLASS->enablePhotosWhileRecording(Landroid/app/Activity;)V",
         )
 
-        VideoSessionRecorderStateFingerprint.method.addInstruction(
+        CoreRecordingStateFingerprint.method.addInstruction(
             0,
-            "invoke-static/range {p1 .. p1}, $EXTENSION_CLASS->onVideoRecorderState(Ljava/lang/Object;)V",
+            "invoke-static/range {p1 .. p1}, $EXTENSION_CLASS->onCoreRecordingState(Ljava/lang/Object;)V",
         )
 
     }

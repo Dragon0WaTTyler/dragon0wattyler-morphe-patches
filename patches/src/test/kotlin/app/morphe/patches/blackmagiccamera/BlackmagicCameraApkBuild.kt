@@ -81,9 +81,57 @@ fun main(arguments: Array<String>) {
             } == true
         }
 
+        fun callsFrom(owner: String, name: String, parameters: List<String>, target: String): Boolean {
+            val method = patchedMethods.singleOrNull {
+                it.definingClass == owner && it.name == name
+                        && it.parameterTypes.map { type -> type.toString() } == parameters
+            } ?: return false
+            return method.implementation?.instructions?.any { instruction ->
+                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                reference?.definingClass == "Lapp/morphe/extension/blackmagiccamera/PhotoCaptureRuntime;"
+                        && reference.name == target
+            } == true
+        }
+
         val runtime = "Lapp/morphe/extension/blackmagiccamera/PhotoCaptureRuntime;"
-        check(calls(runtime, "resolveReader")) {
-            "Compiled PipelineSurfaceManager hook is absent"
+        val activityClass = "Lcom/blackmagicdesign/android/blackmagiccam/ui/MainActivity;"
+        val runtimeMethods = patchedMethods
+            .filter { it.definingClass == runtime }
+            .map { it.name }
+            .toSet()
+        val requiredRuntimeMethods = buildSet {
+            add("onMainScreenLoaded")
+            add("onActivityDestroyed")
+            if (mode != "recording") add("enablePhotoMode")
+            if (mode != "photo") {
+                add("enablePhotosWhileRecording")
+                add("onCoreRecordingState")
+            }
+        }
+        check(runtimeMethods.containsAll(requiredRuntimeMethods)) {
+            "Built extension is missing called bridge methods"
+        }
+        val loaderClass = "Lcom/blackmagicdesign/android/blackmagiccam/ui/MainActivity\$loadMainScreen\$1;"
+        val screenLoader = patchedMethods.single {
+            it.definingClass == loaderClass && it.name == "invokeSuspend"
+        }
+        val screenInstructions = requireNotNull(screenLoader.implementation) {
+            "Blackmagic main-screen loader has no DEX implementation"
+        }.instructions.toList()
+        fun instructionIndex(owner: String, name: String): Int = screenInstructions.indexOfFirst { instruction ->
+            val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            reference?.definingClass == owner && reference.name == name
+        }
+        val setMainContentIndex = instructionIndex("Lcv0;", "a")
+        val attachUiIndex = instructionIndex(runtime, "onMainScreenLoaded")
+        check(setMainContentIndex >= 0 && attachUiIndex == setMainContentIndex + 1) {
+            "Controls are not attached immediately after Blackmagic creates the main screen"
+        }
+        check(calls(runtime, "resolveReader").not()) {
+            "Photo capture must not add an extra camera output to the active session"
+        }
+        check(calls("Landroid/view/PixelCopy;", "request")) {
+            "Photo capture does not copy the displayed preview surface"
         }
         check(calls(runtime, "enablePhotoMode") == (mode != "recording")) {
             "Photo Mode hook does not match selected patches"
@@ -91,8 +139,70 @@ fun main(arguments: Array<String>) {
         check(calls(runtime, "enablePhotosWhileRecording") == (mode != "photo")) {
             "Recording shutter hook does not match selected patches"
         }
-        check(calls(runtime, "onVideoRecorderState") == (mode != "photo")) {
-            "Recording state hook does not match selected patches"
+        check(calls(runtime, "onMainScreenLoaded")) {
+            "Shared runtime main-screen attachment hook is absent"
+        }
+        check(callsFrom(activityClass, "onCreate", listOf("Landroid/os/Bundle;"), "enablePhotoMode")
+                == (mode != "recording")) {
+            "Photo Mode activation is not attached to MainActivity.onCreate"
+        }
+        check(callsFrom(activityClass, "onStart", emptyList(), "enablePhotosWhileRecording")
+                == (mode != "photo")) {
+            "Recording-photo activation is not attached to MainActivity.onStart"
+        }
+        check(callsFrom(activityClass, "onDestroy", emptyList(), "onActivityDestroyed")) {
+            "Shared runtime cleanup is not attached to MainActivity.onDestroy"
+        }
+        check(calls(runtime, "onCoreRecordingState") == (mode != "photo")) {
+            "Core recording-state hook does not match selected patches"
+        }
+        val runtimeSource = File(
+            "../extensions/extension/src/main/java/app/morphe/extension/blackmagiccamera/PhotoCaptureRuntime.java"
+        ).readText()
+        check("photoModeSelected = !photoModeSelected;" in runtimeSource
+                && "shutter.setVisibility(photoModeSelected ? View.VISIBLE : View.GONE);" in runtimeSource) {
+            "Photo Mode selection is not wired to showing and hiding the still shutter"
+        }
+        check("overlay.addOnAttachStateChangeListener" in runtimeSource
+                && "MAIN_HANDLER.post(() ->" in runtimeSource
+                && "root.getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);" in runtimeSource
+                && "refreshUiSafely(Ui.this);" in runtimeSource
+                && "previousContent != root" in runtimeSource
+                && "controls.getParent() != overlay" in runtimeSource
+                && "listenerRoot != root" in runtimeSource) {
+            "Camera controls do not handle content detachment and layout changes"
+        }
+        check("findAvailableBounds(" in runtimeSource
+                && "record == null || !Rect.intersects(candidate, record)" in runtimeSource
+                && "if (controlBounds == null)" in runtimeSource
+                && "No collision-free area; added controls hidden" in runtimeSource) {
+            "Camera controls must not cover Blackmagic's recording control when placement space is constrained"
+        }
+        check("lastCameraActivity.get()" in runtimeSource
+                && "installUiSafely(ui, activity);" in runtimeSource
+                && "refreshUiSafely(ui)" in runtimeSource
+                && "refreshFeatureUi(activity);" in runtimeSource
+                && "ensureControls(activity);" in runtimeSource
+                && "featureSetChanged" in runtimeSource) {
+            "Camera Activity fallback or safe UI lifecycle reporting is missing"
+        }
+        check("MAIN_HANDLER.post(() -> installUiSafely(Ui.this, current));" in runtimeSource
+                && "refreshUiSafely(Ui.this);" in runtimeSource) {
+            "Layout-change UI reinstall and refresh must use the safe diagnostics boundary"
+        }
+        check("retryFrameProbe(surface, generation);" in runtimeSource
+                && "generation != probeGeneration || surface != probedSurface" in runtimeSource
+                && "probeAttempts == 0 || probeAttempts >= 6 ? 2000L : 500L" in runtimeSource) {
+            "Preview diagnostics do not retry at a bounded rate or reject stale surface callbacks"
+        }
+        check("controls.setVisibility(photoModeEnabled || recordingCaptureEnabled ? View.VISIBLE : View.GONE);" in runtimeSource
+                && "recordingShutter.setVisibility(recordingCaptureEnabled && recording ? View.VISIBLE : View.GONE);" in runtimeSource) {
+            "Status diagnostics must remain accessible while the recording shutter is gated by active recording"
+        }
+        check("PixelCopy.request(preview, bitmap" in runtimeSource
+                && "onCoreRecordingState(Object state)" in runtimeSource
+                && "\"RECORDING\".equalsIgnoreCase(name)" in runtimeSource) {
+            "Photo frame capture or active-recording state tracking is missing"
         }
         check(patchedMethods.any { it.definingClass == runtime }) { "Runtime extension class is absent from patched APK" }
         val output = File(arguments.getOrNull(3) ?: workspace.resolve("patched.apk").path).canonicalFile

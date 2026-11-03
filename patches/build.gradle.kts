@@ -98,9 +98,10 @@ tasks {
         description = "Build patch with patch list"
 
         dependsOn(build)
+        systemProperty("patches.version", project.version.toString())
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
-        mainClass.set("app.morphe.util.PatchListGeneratorKt")
+        mainClass.set("util.PatchListGeneratorKt")
     }
 
     register<JavaExec>("validateJam") {
@@ -144,11 +145,10 @@ tasks {
                 ?: throw GradleException("validateBlackmagicCamera requires -PbmcApk=/absolute/path/to/base.apk")
             val mode = providers.gradleProperty("bmcMode").getOrElse("both")
             val output = providers.gradleProperty("bmcOutput").orNull
-            val bundle = fileTree(layout.buildDirectory.dir("libs")) {
-                include("*.mpp")
-                exclude("*-sources.mpp", "*-javadoc.mpp")
-            }.files.maxByOrNull { it.lastModified() }
-                ?: throw GradleException("No built .mpp bundle found in patches/build/libs")
+            val bundle = layout.buildDirectory.file("libs/patches-${project.version}.mpp").get().asFile
+            if (!bundle.isFile) {
+                throw GradleException("No canonical Morphe bundle found at ${bundle.absolutePath}")
+            }
             setArgs(listOf(bundle.absolutePath, apk, mode) + listOfNotNull(output))
         }
     }
