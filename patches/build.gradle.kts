@@ -5,7 +5,7 @@ group = "local.subscriptiongroups"
 patches {
     about {
         name = "Dragon0WaTTyler Morphe Patches"
-        description = "Independent Morphe patch source with an optional PocketTube-style Subscription Groups patch."
+        description = "Independent, growing collection of Morphe patches for Android apps."
         source = "https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches"
         author = "Dragon0WaTTyler"
         contact = "GitHub Issues"
