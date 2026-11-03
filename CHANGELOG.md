@@ -1,3 +1,9 @@
+## [1.0.0-dev.5](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2026-11-03)
+
+### ✨ New Features
+
+* **blackmagic-camera:** add photo capture patches ([462042f](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/462042f6149d39d816df9f99ad536200b1eb025f))
+
 ## [1.0.0-dev.4](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2026-11-02)
 
 ### 🐛 Bug Fixes

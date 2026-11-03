@@ -29,7 +29,7 @@ The `dev` branch publishes prereleases through the official Morphe template work
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0-dev.4](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;196 patches total
+> **[v1.0.0-dev.5](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;198 patches total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;110 patches</summary>
 <br>
@@ -265,6 +265,24 @@ The `dev` branch publishes prereleases through the official Morphe template work
 | [Show flairs in home feed](#show-flairs-in-home-feed) | Adds an option to show post flair badges in the home feed. This patch works with Reddit 2026.24.0 and newer. |  |
 | [Spoof signature](#spoof-signature) | Spoofs the signature of the app to fix notification issues. |  |
 | [Start as guest](#start-as-guest) | Skips the forced startup login screen using Reddit's native guest browsing mode. |  |
+
+</details>
+
+<details open>
+<summary>📦 Blackmagic Camera&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Package name:** `com.blackmagicdesign.android.blackmagiccam`
+
+**🎯 Supported versions:**
+
+| 3.5.1.0044 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Blackmagic Camera — Enable Photo Mode](#blackmagic-camera-enable-photo-mode) | Adds a photo/video switch and saves LUT-rendered camera frames to Gallery at preview-output resolution. |  |
+| [Blackmagic Camera — Take Photos While Recording](#blackmagic-camera-take-photos-while-recording) | Adds a recording shutter that saves a separate LUT-rendered preview frame without changing the active recording session. |  |
 
 </details>
 
