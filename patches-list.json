@@ -557,6 +557,66 @@
       "options": []
     },
     {
+      "name": "Blackmagic Camera — Enable Photo Mode",
+      "description": "Adds a photo/video switch and saves LUT-rendered camera frames to Gallery at preview-output resolution.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.blackmagicdesign.android.blackmagiccam",
+          "name": "Blackmagic Camera",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#101010",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.5.1.0044",
+              "versionCodes": {
+                "ARM64_V8A": 26101004,
+                "ARMEABI_V7A": 26101004
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Blackmagic Camera — Take Photos While Recording",
+      "description": "Adds a recording shutter that saves a separate LUT-rendered preview frame without changing the active recording session.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.blackmagicdesign.android.blackmagiccam",
+          "name": "Blackmagic Camera",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#101010",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.5.1.0044",
+              "versionCodes": {
+                "ARM64_V8A": 26101004,
+                "ARMEABI_V7A": 26101004
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Bypass image region restrictions",
       "description": "Adds an option to use a different host for user avatar and channel images and can fix missing images that are blocked in some countries.",
       "default": true,

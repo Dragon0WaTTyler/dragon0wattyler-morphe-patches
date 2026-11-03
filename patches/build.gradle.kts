@@ -132,6 +132,26 @@ tasks {
             setArgs(listOfNotNull(apk, mode, output))
         }
     }
+
+    register<JavaExec>("validateBlackmagicCamera") {
+        description = "Applies selected Blackmagic Camera patches to a stock base APK and verifies the DEX output"
+        group = "verification"
+        dependsOn("testClasses", "buildAndroid")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("app.morphe.patches.blackmagiccamera.BlackmagicCameraApkBuildKt")
+        doFirst {
+            val apk = providers.gradleProperty("bmcApk").orNull
+                ?: throw GradleException("validateBlackmagicCamera requires -PbmcApk=/absolute/path/to/base.apk")
+            val mode = providers.gradleProperty("bmcMode").getOrElse("both")
+            val output = providers.gradleProperty("bmcOutput").orNull
+            val bundle = fileTree(layout.buildDirectory.dir("libs")) {
+                include("*.mpp")
+                exclude("*-sources.mpp", "*-javadoc.mpp")
+            }.files.maxByOrNull { it.lastModified() }
+                ?: throw GradleException("No built .mpp bundle found in patches/build/libs")
+            setArgs(listOf(bundle.absolutePath, apk, mode) + listOfNotNull(output))
+        }
+    }
     // Used by gradle-semantic-release-plugin.
     publish {
         dependsOn("generatePatchesList")

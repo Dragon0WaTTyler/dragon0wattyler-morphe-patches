@@ -1,23 +1,24 @@
 # Blackmagic Camera patches
 
-> **Status:** Planned — **no Blackmagic Camera .mpp release has been published from this repository.**
+> **Status:** Experimental development candidate. Check the [repository releases](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases) for the current prerelease and its verified bundle.
 
-## App
+## App compatibility
 
 - **App:** Blackmagic Camera for Android
-- **Package name:** `com.blackmagicdesign.android.blackmagiccam`
-- **Patch status:** Development and compatibility verification are still required.
-- **Available release:** None.
-- **Download:** Not available yet.
+- **Package:** `com.blackmagicdesign.android.blackmagiccam`
+- **Version:** `3.5.1.0044`
+- **Version code:** `26101004` (ARM64 and ARMv7 APKM splits)
+- **Source:** This app remains a section of the existing [multi-app Morphe source](https://morphe.software/add-source?github=Dragon0WaTTyler/dragon0wattyler-morphe-patches).
 
-## Purpose
+## Independent patches
 
-This page is reserved for independent Blackmagic Camera patches. When a real patch is ready, this page will document its functionality, supported APK versions, patching prerequisites, limitations, test results, and changelog.
+- **Blackmagic Camera — Enable Photo Mode** adds a VIDEO/PHOTO selector and still shutter.
+- **Blackmagic Camera — Take Photos While Recording** adds a separate shutter while recording. The two patches can be selected independently or together.
 
-**Nothing on this page implies that a working Blackmagic Camera patch is available today.** Do not install a YouTube/PocketTube `.mpp` expecting it to patch Blackmagic Camera.
+Both use a rendered camera-pipeline frame and save JPEGs to Gallery. See the [implementation, verification, and limitations](../docs/blackmagic-camera-photo-patches.md).
 
-## Future independent release source
+## Runtime limitations
 
-The intended dedicated repository name is `dragon0wattyler-blackmagic`. After that repository exists, it will require its own source, Morphe metadata, build/test pipeline, and .mpp release assets. Links will be added only after a real repository and verified release are available.
+Capture uses a downscaled 12-fps compositor output with a long edge of about 1280 pixels, rather than native-resolution sensor stills. LUT output follows the app's renderer, but saved-image matching against the preview—including custom LUTs—has not been confirmed on a physical device. Continuous video/audio recording, repeated captures, and high-resolution, HDR, and high-frame-rate workflows also require device testing.
 
-See [repository split plan](../docs/REPOSITORY_SPLIT.md).
+This is an experimental candidate, not a claim of device-verified behavior. Install the development prerelease only for testing.
