@@ -301,11 +301,11 @@ The `dev` branch publishes prereleases through the official Morphe template work
 
 <!-- PATCHES_END -->
 
-## Subscription Groups status
+## PocketTube Groups status
 
-V6.1 is an experimental candidate. It includes PocketTube JSON import, local group storage, group feeds with automatic channel coverage, caching, filters, playback routing, and an experimental native-menu binding bridge. Full native menu parity has **not** been verified on stock YouTube 21.30.216 or a target Android device. The bridge may fall back to the limited Android menu when a valid native binding is unavailable.
+The most recent PocketTube-specific candidate linked in this catalog is **V8.1**, published in [v1.0.0-dev.4](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.4). Build and fixture checks are documented, but the Samsung-device layout/menu behavior still needs confirmation against the target APK. Unsupported native menu contexts use a fallback; live PocketTube sync is not implemented.
 
-See [verification](docs/subscription-groups/VERIFICATION.md), [known limitations](docs/subscription-groups/KNOWN_LIMITATIONS.md), [native-menu investigation](docs/subscription-groups/NATIVE_MENU_INVESTIGATION.md), and the [Android checklist](docs/subscription-groups/ANDROID_CHECKLIST.md). RSS/channel sources expose only finite recent-upload windows; full YouTube upload history and PocketTube live synchronization are not implemented.
+See the [dedicated PocketTube page](apps/pockettube-groups.md) for candidate downloads, changelogs, verification and compatibility notes. [Blackmagic Camera](apps/blackmagic-camera.md) is listed separately as planned, not released.
 
 ## Build
 
