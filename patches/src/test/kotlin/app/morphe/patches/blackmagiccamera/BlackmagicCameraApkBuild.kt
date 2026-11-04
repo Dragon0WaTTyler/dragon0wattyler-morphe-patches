@@ -102,6 +102,7 @@ fun main(arguments: Array<String>) {
         val requiredRuntimeMethods = buildSet {
             add("onMainScreenLoaded")
             add("onActivityDestroyed")
+            add("onVideoSessionManager")
             if (mode != "recording") add("enablePhotoMode")
             if (mode != "photo") {
                 add("enablePhotosWhileRecording")
@@ -142,6 +143,17 @@ fun main(arguments: Array<String>) {
         check(calls(runtime, "onMainScreenLoaded")) {
             "Shared runtime main-screen attachment hook is absent"
         }
+        check(calls(runtime, "onVideoSessionManager")) {
+            "Verified camera preview owner hook is absent"
+        }
+        check(callsFrom(
+            "Lcom/blackmagicdesign/android/camera/domain/j;",
+            "f",
+            listOf("J"),
+            "onVideoSessionManager",
+        )) {
+            "The runtime is not given the verified VideoSessionManager that owns the camera preview"
+        }
         check(callsFrom(activityClass, "onCreate", listOf("Landroid/os/Bundle;"), "enablePhotoMode")
                 == (mode != "recording")) {
             "Photo Mode activation is not attached to MainActivity.onCreate"
@@ -160,7 +172,8 @@ fun main(arguments: Array<String>) {
             "../extensions/extension/src/main/java/app/morphe/extension/blackmagiccamera/PhotoCaptureRuntime.java"
         ).readText()
         check("photoModeSelected = !photoModeSelected;" in runtimeSource
-                && "shutter.setVisibility(photoModeSelected ? View.VISIBLE : View.GONE);" in runtimeSource) {
+                && "shutter.setVisibility(photoModeSelected && !recording ? View.VISIBLE : View.GONE);" in runtimeSource
+                && "Stop recording before changing camera mode" in runtimeSource) {
             "Photo Mode selection is not wired to showing and hiding the still shutter"
         }
         check("overlay.addOnAttachStateChangeListener" in runtimeSource
@@ -203,6 +216,14 @@ fun main(arguments: Array<String>) {
                 && "onCoreRecordingState(Object state)" in runtimeSource
                 && "\"RECORDING\".equalsIgnoreCase(name)" in runtimeSource) {
             "Photo frame capture or active-recording state tracking is missing"
+        }
+        check("VideoSessionManager.e (" in runtimeSource
+                && "registerPreviewLifecycle(preview)" in runtimeSource
+                && "describePreviewCandidates(activity)" in runtimeSource
+                && "PREVIEW NOT FOUND" in runtimeSource
+                && "pixelCopyResultName(result)" in runtimeSource
+                && "PixelCopy.request(preview, bitmap" in runtimeSource) {
+            "Capture discovery is not anchored to the app-owned preview with lifecycle diagnostics"
         }
         check(patchedMethods.any { it.definingClass == runtime }) { "Runtime extension class is absent from patched APK" }
         val output = File(arguments.getOrNull(3) ?: workspace.resolve("patched.apk").path).canonicalFile

@@ -46,3 +46,11 @@ internal object CoreRecordingStateFingerprint : Fingerprint(
     parameters = listOf("Lcom/blackmagicdesign/android/utils/entity/CoreRecordingState;"),
     returnType = "V",
 )
+
+/** VideoSessionManager.f(long) builds/attaches a camera session using its owned preview field `e`. */
+internal object VideoSessionManagerBuildSessionFingerprint : Fingerprint(
+    definingClass = "Lcom/blackmagicdesign/android/camera/domain/j;",
+    name = "f",
+    parameters = listOf("J"),
+    returnType = "V",
+)

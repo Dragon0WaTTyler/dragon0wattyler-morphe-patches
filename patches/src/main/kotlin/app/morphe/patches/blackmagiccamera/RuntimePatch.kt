@@ -7,6 +7,11 @@ private const val EXTENSION_CLASS = "Lapp/morphe/extension/blackmagiccamera/Phot
 
 internal val blackmagicCameraCaptureRuntimePatch = bytecodePatch {
     execute {
+        VideoSessionManagerBuildSessionFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range {p0 .. p0}, $EXTENSION_CLASS->onVideoSessionManager(Ljava/lang/Object;)V",
+        )
+
         MainActivityOnDestroyFingerprint.method.addInstruction(
             0,
             "invoke-static/range {p0 .. p0}, $EXTENSION_CLASS->onActivityDestroyed(Landroid/app/Activity;)V",

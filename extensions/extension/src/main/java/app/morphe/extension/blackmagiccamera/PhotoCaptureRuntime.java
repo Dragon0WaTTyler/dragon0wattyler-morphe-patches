@@ -22,6 +22,7 @@ import android.view.PixelCopy;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -44,13 +45,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class PhotoCaptureRuntime {
     private static final String PREVIEW_SURFACE_CLASS = "defpackage.tt";
+    private static final String PREVIEW_MANAGER_CLASS = "com.blackmagicdesign.android.camera.domain.j";
     private static final int MAX_CAPTURE_PIXELS = 12_000_000;
     private static final Object LOCK = new Object();
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
     private static final Map<Activity, Ui> UIS = new WeakHashMap<>();
     private static final ExecutorService SAVE_EXECUTOR = Executors.newSingleThreadExecutor();
     private static final AtomicBoolean saving = new AtomicBoolean(false);
+    private static final Map<SurfaceView, SurfaceHolder.Callback> PREVIEW_CALLBACKS = new WeakHashMap<>();
     private static volatile WeakReference<Activity> lastCameraActivity = new WeakReference<>(null);
+    private static volatile WeakReference<SurfaceView> blackmagicPreview = new WeakReference<>(null);
+    private static volatile WeakReference<Activity> previewOwner = new WeakReference<>(null);
+    private static volatile String previewDiscoveryStatus = "Waiting for Blackmagic VideoSessionManager";
 
     private static volatile boolean extensionLoaded;
     private static volatile boolean photoModeEnabled;
@@ -120,7 +126,77 @@ public final class PhotoCaptureRuntime {
             Ui ui = UIS.remove(activity);
             if (ui != null) ui.remove();
         }
+        if (previewOwner.get() == activity) {
+            previewOwner = new WeakReference<>(null);
+            blackmagicPreview = new WeakReference<>(null);
+            previewDiscoveryStatus = "Camera Activity destroyed; waiting for a new preview surface";
+        }
         if (lastCameraActivity.get() == activity) lastCameraActivity = new WeakReference<>(null);
+    }
+
+    /**
+     * Called at the verified VideoSessionManager.f(long) entry point. In APK 3.5.1.0044,
+     * domain.j owns the actual camera output view in field `e`; this avoids relying on
+     * Compose's internal AndroidView child traversal to discover the SurfaceView.
+     */
+    public static void onVideoSessionManager(Object manager) {
+        if (manager == null || !PREVIEW_MANAGER_CLASS.equals(manager.getClass().getName())) return;
+        try {
+            Field previewField = manager.getClass().getDeclaredField("e");
+            previewField.setAccessible(true);
+            Object candidate = previewField.get(manager);
+            if (!(candidate instanceof SurfaceView)
+                    || !PREVIEW_SURFACE_CLASS.equals(candidate.getClass().getName())) {
+                previewDiscoveryStatus = "VideoSessionManager.e is not the verified Blackmagic tt SurfaceView";
+                refreshAllStatuses();
+                return;
+            }
+            SurfaceView preview = (SurfaceView) candidate;
+            blackmagicPreview = new WeakReference<>(preview);
+            Activity activity = lastCameraActivity.get();
+            previewOwner = new WeakReference<>(activity);
+            registerPreviewLifecycle(preview);
+            previewDiscoveryStatus = "Resolved VideoSessionManager.e (" + PREVIEW_SURFACE_CLASS + ")";
+            refreshAllStatuses();
+        } catch (Throwable error) {
+            previewDiscoveryStatus = "VideoSessionManager preview lookup failed: " + error.getClass().getSimpleName();
+            refreshAllStatuses();
+        }
+    }
+
+    private static void registerPreviewLifecycle(SurfaceView preview) {
+        synchronized (PREVIEW_CALLBACKS) {
+            if (PREVIEW_CALLBACKS.containsKey(preview)) return;
+            WeakReference<SurfaceView> previewRef = new WeakReference<>(preview);
+            SurfaceHolder.Callback callback = new SurfaceHolder.Callback() {
+                @Override public void surfaceCreated(SurfaceHolder holder) { onSurfaceChanged("created"); }
+                @Override public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                    onSurfaceChanged("changed " + width + "×" + height);
+                }
+                @Override public void surfaceDestroyed(SurfaceHolder holder) { onSurfaceChanged("destroyed"); }
+                private void onSurfaceChanged(String event) {
+                    MAIN_HANDLER.post(() -> {
+                        SurfaceView current = previewRef.get();
+                        if (current != null && blackmagicPreview.get() == current) {
+                            previewDiscoveryStatus = "Blackmagic preview surface " + event;
+                            refreshAllStatuses();
+                        }
+                    });
+                }
+            };
+            try {
+                preview.getHolder().addCallback(callback);
+                PREVIEW_CALLBACKS.put(preview, callback);
+            } catch (Throwable error) {
+                previewDiscoveryStatus = "Could not observe preview lifecycle: " + error.getClass().getSimpleName();
+            }
+        }
+    }
+
+    private static void refreshAllStatuses() {
+        synchronized (LOCK) {
+            for (Ui ui : UIS.values()) MAIN_HANDLER.post(() -> refreshUiSafely(ui));
+        }
     }
 
     private static void rememberActivity(Activity activity) {
@@ -204,13 +280,13 @@ public final class PhotoCaptureRuntime {
 
         SurfaceView preview = findPreviewSurface(activity);
         if (preview == null) {
-            failCapture(activity, null, "Blackmagic preview surface is not ready");
+            failCapture(activity, null, "Blackmagic preview view not found; " + previewDiscoveryStatus);
             return;
         }
         SurfaceHolder holder = preview.getHolder();
         if (holder == null || holder.getSurface() == null || !holder.getSurface().isValid()
                 || preview.getWidth() < 2 || preview.getHeight() < 2) {
-            failCapture(activity, null, "Blackmagic preview frame is not ready");
+            failCapture(activity, null, "Preview not capturable: " + describePreview(preview));
             return;
         }
 
@@ -231,7 +307,8 @@ public final class PhotoCaptureRuntime {
             PixelCopy.request(preview, bitmap, result -> {
                 if (result != PixelCopy.SUCCESS) {
                     bitmap.recycle();
-                    failCapture(activity, null, "Preview copy failed (PixelCopy " + result + ")");
+                    failCapture(activity, null, "Preview copy failed: " + pixelCopyResultName(result)
+                            + " (" + result + ")");
                     return;
                 }
                 lastPixelCopyStatus = "Frame copied " + width + "×" + height;
@@ -308,6 +385,10 @@ public final class PhotoCaptureRuntime {
     }
 
     private static SurfaceView findPreviewSurface(Activity activity) {
+        SurfaceView owned = blackmagicPreview.get();
+        Activity owner = previewOwner.get();
+        if (owned != null && (owner == null || owner == activity)
+                && PREVIEW_SURFACE_CLASS.equals(owned.getClass().getName())) return owned;
         View content = activity.findViewById(android.R.id.content);
         return findPreviewSurface(content);
     }
@@ -327,6 +408,26 @@ public final class PhotoCaptureRuntime {
         return null;
     }
 
+    private static String describePreview(SurfaceView view) {
+        SurfaceHolder holder = view.getHolder();
+        Surface surface = holder == null ? null : holder.getSurface();
+        return view.getClass().getName() + " " + view.getWidth() + "×" + view.getHeight()
+                + " valid=" + (surface != null && surface.isValid())
+                + " attached=" + view.isAttachedToWindow();
+    }
+
+    private static String pixelCopyResultName(int result) {
+        switch (result) {
+            case PixelCopy.ERROR_UNKNOWN: return "unknown error";
+            case PixelCopy.ERROR_TIMEOUT: return "frame copy timed out";
+            case PixelCopy.ERROR_SOURCE_NO_DATA: return "preview has no frame yet";
+            case PixelCopy.ERROR_SOURCE_INVALID: return "preview source is invalid";
+            case PixelCopy.ERROR_DESTINATION_INVALID: return "photo bitmap is invalid";
+            case PixelCopy.SUCCESS: return "success";
+            default: return "unrecognized PixelCopy result";
+        }
+    }
+
     private static void showDiagnostics(Activity activity) {
         Ui ui;
         synchronized (LOCK) {
@@ -338,7 +439,8 @@ public final class PhotoCaptureRuntime {
             SurfaceHolder holder = preview.getHolder();
             boolean valid = holder != null && holder.getSurface() != null && holder.getSurface().isValid();
             sourceStatus = (valid ? "ready" : "waiting")
-                    + " (" + preview.getWidth() + "×" + preview.getHeight() + ")";
+                    + " (" + preview.getWidth() + "×" + preview.getHeight() + ", "
+                    + preview.getClass().getName() + ", attached=" + preview.isAttachedToWindow() + ")";
         }
         String details = "Extension loaded: " + yesNo(extensionLoaded)
                 + "\nPhoto Mode patch: " + yesNo(photoModeEnabled)
@@ -347,6 +449,8 @@ public final class PhotoCaptureRuntime {
                 + "\nMain screen hook: " + (ui == null ? "not received" : "received")
                 + "\nUI attached: " + (ui != null && ui.isAttached() ? "yes" : "no")
                 + "\nCamera preview source: " + sourceStatus
+                + "\nPreview lookup: " + previewDiscoveryStatus
+                + "\nPreview candidates: " + describePreviewCandidates(activity)
                 + "\nControl placement: " + (ui == null ? "not attached" : ui.controlAnchorStatus)
                 + "\nPreview frame available: " + (ui != null && ui.frameAvailable ? "yes" : "not confirmed")
                 + "\nUI status: " + lastUiStatus
@@ -358,6 +462,47 @@ public final class PhotoCaptureRuntime {
                 .setMessage(details)
                 .setPositiveButton(android.R.string.ok, null)
                 .show();
+    }
+
+    private static String describePreviewCandidates(Activity activity) {
+        StringBuilder result = new StringBuilder();
+        SurfaceView owned = blackmagicPreview.get();
+        if (owned != null) appendPreviewCandidate(result, "VideoSessionManager.e", owned);
+        View content = activity.findViewById(android.R.id.content);
+        collectPreviewCandidates(content, result, new int[]{12});
+        return result.length() == 0 ? "none in root; manager=" + (owned == null ? "none" : "resolved")
+                : result.toString();
+    }
+
+    private static void collectPreviewCandidates(View view, StringBuilder result, int[] remaining) {
+        if (view == null || remaining[0] <= 0) return;
+        if (view instanceof SurfaceView) {
+            appendPreviewCandidate(result, "hierarchy", (SurfaceView) view);
+            remaining[0]--;
+        } else if (view instanceof TextureView) {
+            if (result.length() > 0) result.append("; ");
+            result.append("hierarchy:").append(view.getClass().getName()).append(' ')
+                    .append(view.getWidth()).append('×').append(view.getHeight())
+                    .append(" available=").append(((TextureView) view).isAvailable())
+                    .append(" attached=").append(view.isAttachedToWindow());
+            remaining[0]--;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount() && remaining[0] > 0; i++) {
+                collectPreviewCandidates(group.getChildAt(i), result, remaining);
+            }
+        }
+    }
+
+    private static void appendPreviewCandidate(StringBuilder result, String source, SurfaceView view) {
+        if (result.length() > 0) result.append("; ");
+        SurfaceHolder holder = view.getHolder();
+        Surface surface = holder == null ? null : holder.getSurface();
+        result.append(source).append(':').append(view.getClass().getName()).append(' ')
+                .append(view.getWidth()).append('×').append(view.getHeight())
+                .append(" valid=").append(surface != null && surface.isValid())
+                .append(" attached=").append(view.isAttachedToWindow());
     }
 
     private static String yesNo(boolean value) {
@@ -508,6 +653,10 @@ public final class PhotoCaptureRuntime {
                 mode = label(activity, "VIDEO MODE", 12, Color.WHITE, 0xD9161719, false);
                 controls.addView(mode, new LinearLayout.LayoutParams(dp(activity, 116), dp(activity, 42)));
                 mode.setOnClickListener(v -> {
+                    if (recording) {
+                        toast(activity, "Stop recording before changing camera mode");
+                        return;
+                    }
                     photoModeSelected = !photoModeSelected;
                     refresh();
                 });
@@ -562,7 +711,7 @@ public final class PhotoCaptureRuntime {
             if (activity == null || controls == null) return;
             controls.setVisibility(photoModeEnabled || recordingCaptureEnabled ? View.VISIBLE : View.GONE);
             if (mode != null) mode.setText(photoModeSelected ? "PHOTO MODE" : "VIDEO MODE");
-            if (shutter != null) shutter.setVisibility(photoModeSelected ? View.VISIBLE : View.GONE);
+            if (shutter != null) shutter.setVisibility(photoModeSelected && !recording ? View.VISIBLE : View.GONE);
             if (recordingShutter != null) {
                 recordingShutter.setVisibility(recordingCaptureEnabled && recording ? View.VISIBLE : View.GONE);
             }
@@ -577,7 +726,7 @@ public final class PhotoCaptureRuntime {
             SurfaceView preview = findPreviewSurface(activity);
             if (preview == null) {
                 if (probedSurface != null || probePending || probeRetry != null) resetProbe(null);
-                if (!"PREVIEW WAITING".contentEquals(status.getText())) status.setText("PREVIEW WAITING");
+                if (!"PREVIEW NOT FOUND".contentEquals(status.getText())) status.setText("PREVIEW NOT FOUND");
                 status.setTextColor(0xFFFFD166);
                 return;
             }
@@ -590,7 +739,7 @@ public final class PhotoCaptureRuntime {
             }
             if (!ready) frameAvailable = false;
             if (ready && !frameAvailable) probeFrame(preview, surface);
-            String nextText = !ready ? "PREVIEW WAITING" : frameAvailable ? "FRAME READY" : "WAITING FOR FRAME";
+            String nextText = !ready ? "SURFACE WAITING" : frameAvailable ? "FRAME READY" : "WAITING FOR FRAME";
             if (!nextText.contentEquals(status.getText())) status.setText(nextText);
             status.setTextColor(frameAvailable ? 0xFF8CE99A : 0xFFFFD166);
         }
