@@ -16,6 +16,7 @@ patches {
 // Separate configuration so gson is available at runtime for the
 // generatePatchesList task but never bundled into the APK.
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
+val spotifyBridgeAssembler = configurations.create("spotifyBridgeAssembler")
 val jamApk = providers.gradleProperty("jamApk")
 val jamOutput = providers.gradleProperty("jamOutput")
 
@@ -50,17 +51,44 @@ dependencies {
     compileOnly(libs.gson)
 
     patchListGeneratorClasspath(libs.gson)
+    spotifyBridgeAssembler("com.github.MorpheApp.smali:smali:${libs.versions.smali.get()}")
 
     // Android API stubs defined here.
     compileOnly(project(":patches:stub"))
 
     testImplementation(kotlin("test"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${libs.versions.junit.jupiter.get()}")
     testImplementation(libs.kotlinx.coroutines.core)
     testImplementation(libs.protobuf.javalite)
     testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
+val spotifyBridgeSource = layout.projectDirectory.dir("src/main/smali/spotify")
+val spotifyBridgeOutput = layout.buildDirectory.dir("generated/spotify-bridge")
+val assembleSpotifyBridge = tasks.register<JavaExec>("assembleSpotifyBridge") {
+    description = "Assembles Spicetify's native Spotify bridge"
+    classpath = spotifyBridgeAssembler
+    mainClass.set("com.android.tools.smali.smali.Main")
+    inputs.dir(spotifyBridgeSource)
+    outputs.dir(spotifyBridgeOutput)
+    val dex = spotifyBridgeOutput.map { it.file("extensions/spotify-settings.dex") }
+    doFirst {
+        val output = dex.get().asFile
+        output.parentFile.mkdirs()
+        args("assemble", spotifyBridgeSource.asFile.absolutePath, "--api", "24", "--output", output.absolutePath)
+    }
+}
+sourceSets.main { resources.srcDir(assembleSpotifyBridge) }
+
 tasks {
+    processResources {
+        into("META-INF/licenses/spicetify") {
+            from(rootProject.file("LICENSE"))
+            from(rootProject.file("docs/licenses/spicetify-NOTICE"))
+            from(rootProject.file("docs/licenses/spicetify-third-party-notices.md"))
+        }
+    }
+
     test {
         useJUnitPlatform()
         dependsOn(":extensions:youtube:generateReleaseProto", ":extensions:youtube:compileReleaseJavaWithJavac")
@@ -150,6 +178,21 @@ tasks {
                 throw GradleException("No canonical Morphe bundle found at ${bundle.absolutePath}")
             }
             setArgs(listOf(bundle.absolutePath, apk, mode) + listOfNotNull(output))
+        }
+    }
+    register<JavaExec>("validateSpotify") {
+        description = "Applies Spicetify from the built bundle to a supplied stock Spotify APK"
+        group = "verification"
+        dependsOn("testClasses", "buildAndroid")
+        classpath = sourceSets["test"].runtimeClasspath
+        maxHeapSize = "4g"
+        mainClass.set("app.spicetify.patches.spotify.SpotifyApkBuildKt")
+        doFirst {
+            val apk = providers.gradleProperty("spotifyApk").orNull
+                ?: throw GradleException("validateSpotify requires -PspotifyApk=/absolute/path/to/stock.apk")
+            val selection = providers.gradleProperty("spotifyPatch").getOrElse("all")
+            val bundle = layout.buildDirectory.file("libs/patches-${project.version}.mpp").get().asFile
+            setArgs(listOf(bundle.absolutePath, apk, selection) + listOfNotNull(providers.gradleProperty("spotifyOutput").orNull))
         }
     }
     // Used by gradle-semantic-release-plugin.

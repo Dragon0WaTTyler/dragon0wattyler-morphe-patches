@@ -12,8 +12,9 @@ Choose an app to see its features, supported versions, changelog and release dow
 | --- | --- | --- | --- |
 | **YouTube — PocketTube Groups** | Development candidate | [Features, compatibility and limitations](apps/pockettube-groups.md) | [PocketTube V8.1 candidate](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.4) |
 | **Blackmagic Camera** | Experimental development candidate | [Features, compatibility and limitations](apps/blackmagic-camera.md) | [Repository prereleases](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases) |
+| **Spotify** | Experimental Spicetify integration | [Features, compatibility and limitations](apps/spotify-spicetify.md) | [Repository prereleases](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases) |
 
-YouTube, YouTube Music, Reddit, PocketTube, and Blackmagic Camera patches remain in this repository's shared multi-app source and release stream. App support is grouped by application in Morphe Manager and in the catalog below.
+YouTube, YouTube Music, Reddit, PocketTube, Blackmagic Camera, and Spotify patches share this repository's multi-app source and release stream. App support is grouped by application in Morphe Manager and in the catalog below.
 
 <a href="https://morphe.software/add-source?github=Dragon0WaTTyler/dragon0wattyler-morphe-patches"><img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe Manager" height="48"></a>
 

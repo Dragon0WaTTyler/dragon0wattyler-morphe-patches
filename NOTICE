@@ -45,3 +45,12 @@ overflow, account-wide history and target-device validation are not claimed.
 V6.1 modified2026-11-02: experimental exact native-menu binding reuse, scoped
 Morphe flyout identity and separate local watched actions. Native target schema,
 rendering/actions and universal native-menu coverage remain unverified.
+
+Spicetify Android integration — 2026-11-04
+==========================================
+
+Spotify patch and extension source is derived from spicetify/morphe-patches
+at 6741682b28f5c120e7e995537b49705a5d8789ec under GPL-3.0. The upstream notice
+and attribution are in docs/licenses and are bundled under
+META-INF/licenses/spicetify. Integration changes and corresponding sources
+are available in this repository.
