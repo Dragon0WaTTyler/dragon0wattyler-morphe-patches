@@ -1,3 +1,9 @@
+## [1.0.0-dev.8](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.7...v1.0.0-dev.8) (2026-11-04)
+
+### ✨ New Features
+
+* **spotify:** integrate experimental Spicetify patches ([5b32678](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/5b326780f1e90897134786c90b764dda95bbab90))
+
 ## [1.0.0-dev.7](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2026-11-04)
 
 ### 🐛 Bug Fixes
