@@ -1,3 +1,9 @@
+## [1.0.0-dev.7](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **blackmagic-camera:** resolve owned preview surface for capture ([c84cca4](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/c84cca49e408b56a4c380e74ab95217b5bed9674))
+
 ## [1.0.0-dev.6](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2026-11-03)
 
 ### 🐛 Bug Fixes
