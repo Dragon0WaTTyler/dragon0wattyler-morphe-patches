@@ -13,8 +13,9 @@ Choose an app to see its features, supported versions, changelog and release dow
 | **YouTube — PocketTube Groups** | Development candidate | [Features, compatibility and limitations](apps/pockettube-groups.md) | [PocketTube V8.1 candidate](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.4) |
 | **Blackmagic Camera** | Experimental development candidate | [Features, compatibility and limitations](apps/blackmagic-camera.md) | [Repository prereleases](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases) |
 | **Spotify** | 9.1.94.1929 ARM64 · 8 ported; runtime testing pending | [Features, compatibility and limitations](apps/spotify-spicetify.md) | [Repository prereleases](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases) |
+| **Readest — S Pen Air Actions** | Experimental · 0.12.20 ARM64 · not physically verified | [Compatibility, setup and limitations](apps/readest-s-pen-air-actions.md) | Repository prereleases |
 
-YouTube, YouTube Music, Reddit, PocketTube, Blackmagic Camera, and Spotify patches share this repository's multi-app source and release stream. App support is grouped by application in Morphe Manager and in the catalog below.
+YouTube, YouTube Music, Reddit, PocketTube, Blackmagic Camera, Spotify, and Readest patches share this repository's multi-app source and release stream. App support is grouped by application in Morphe Manager and in the catalog below.
 
 <a href="https://morphe.software/add-source?github=Dragon0WaTTyler/dragon0wattyler-morphe-patches"><img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe Manager" height="48"></a>
 
