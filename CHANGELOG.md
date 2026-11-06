@@ -1,3 +1,9 @@
+## [1.0.0-dev.10](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.9...v1.0.0-dev.10) (2026-11-06)
+
+### ✨ New Features
+
+* **spotify:** complete native ports and add connection diagnostics ([b405910](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/b4059106fcacf6a453c70a5df8bc60c6a6d61fbb))
+
 ## [1.0.0-dev.9](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.8...v1.0.0-dev.9) (2026-11-06)
 
 ### ✨ New Features

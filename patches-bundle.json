@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-06T12:12:10",
-  "description": "## [1.0.0-dev.9](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.8...v1.0.0-dev.9) (2026-11-06)\n\n### ✨ New Features\n\n* **spotify:** port six patches to 9.1.94.1929 ([7ee93d8](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/7ee93d8a7cf613cc27491190ab30ac04cba49ba9))",
-  "download_url": "https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/download/v1.0.0-dev.9/patches-1.0.0-dev.9.mpp",
+  "created_at": "2026-11-06T19:51:04",
+  "description": "## [1.0.0-dev.10](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.9...v1.0.0-dev.10) (2026-11-06)\n\n### ✨ New Features\n\n* **spotify:** complete native ports and add connection diagnostics ([b405910](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/b4059106fcacf6a453c70a5df8bc60c6a6d61fbb))",
+  "download_url": "https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/download/v1.0.0-dev.10/patches-1.0.0-dev.10.mpp",
   "signature_download_url": "",
-  "version": "1.0.0-dev.9"
+  "version": "1.0.0-dev.10"
 }
