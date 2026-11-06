@@ -1,3 +1,9 @@
+## [1.0.0-dev.9](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.8...v1.0.0-dev.9) (2026-11-06)
+
+### ✨ New Features
+
+* **spotify:** port six patches to 9.1.94.1929 ([7ee93d8](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/7ee93d8a7cf613cc27491190ab30ac04cba49ba9))
+
 ## [1.0.0-dev.8](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.7...v1.0.0-dev.8) (2026-11-04)
 
 ### ✨ New Features
