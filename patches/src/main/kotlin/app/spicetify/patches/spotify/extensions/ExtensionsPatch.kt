@@ -4,6 +4,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -12,6 +13,7 @@ import app.spicetify.patches.spotify.settings.NativeSettingsAbi
 import app.spicetify.patches.spotify.settings.enableSetting
 import app.spicetify.patches.spotify.settings.settingsPatch
 import app.spicetify.patches.spotify.spotifyCompatibility
+import app.spicetify.patches.spotify.requireSpotify9194Port
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -109,7 +111,7 @@ internal val playerBridgePatch = bytecodePatch {
     dependsOn(settingsPatch) // H1 calls into the extension, which the settings patch merges
 
     execute {
-        checkSnapshot { it == COSMOS_SERVICE }
+        checkPlayerBridgeSnapshot()
         val mismatches = fieldNumberMismatches(esperantoFieldNumbers) { key ->
             val (type, name) = key.split('#')
             val constant = classDefByOrNull(type)?.staticFields?.firstOrNull { it.name == name }
@@ -132,7 +134,8 @@ internal val playerBridgePatch = bytecodePatch {
 @Suppress("unused")
 val extensionsPatch = bytecodePatch(
     name = "Spicetify extensions",
-    description = "Adds Android versions of Spicetify extensions to the Spicetify Marketplace's Extensions tab, " +
+    description = "UNSUPPORTED on Spotify 9.1.94.1929: native menus, Home chips and Your Library filters have not been ported. " +
+        "Adds Android versions of Spicetify extensions to the Spicetify Marketplace's Extensions tab, " +
         "in Spicetify settings, each off until you turn it on. Trash Bin skips the songs and artists you throw " +
         "away from their menus. Play a random song plays one from all of Spotify or your library, from a " +
         "Random pill on Home. Shuffle+ plays a playlist, album or Liked Songs in a truly random order when you " +
@@ -142,9 +145,11 @@ val extensionsPatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(spotifyCompatibility)
-    dependsOn(settingsPatch, playerBridgePatch)
+    // Dependencies are deliberately omitted while unavailable.
+    availability { _, _ -> PatchAvailability.UNAVAILABLE }
 
     execute {
+        requireSpotify9194Port("native menus, Home chips and Your Library filters have not been ported")
         // The player bridge patch checked, then hooked, the router service before this runs.
         checkSnapshot { it != COSMOS_SERVICE }
 
@@ -274,7 +279,19 @@ val extensionsPatch = bytecodePatch(
     }
 }
 
-/** Refuses to patch unless each class of the extensions snapshot that [selected] picks has its recorded digest. */
+/** The router is independently pinned for the available Home pins picker. */
+private fun BytecodePatchContext.checkPlayerBridgeSnapshot() {
+    val snapshot = Properties().apply {
+        NativeSettingsAbi::class.java.getResourceAsStream("/spotify/extensions/player-9.1.94.1929.properties")!!.use(::load)
+    }
+    val definition = classDefByOrNull(COSMOS_SERVICE)
+        ?: throw PatchException("Spotify player bridge missing: $COSMOS_SERVICE")
+    if (NativeSettingsAbi.digest(definition) != snapshot.getProperty(COSMOS_SERVICE)) {
+        throw PatchException("Spotify player bridge ABI changed. Use the verified Spotify 9.1.94.1929 ARM64 APK.")
+    }
+}
+
+/** Legacy snapshot retained for the unavailable extension collection. */
 private fun BytecodePatchContext.checkSnapshot(selected: (String) -> Boolean) {
     val snapshot = Properties().apply {
         NativeSettingsAbi::class.java.getResourceAsStream("/spotify/extensions/9.1.80.2221.properties")!!.use(::load)

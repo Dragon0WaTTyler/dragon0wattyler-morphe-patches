@@ -22,29 +22,33 @@ internal val settingsPatch = bytecodePatch {
 
     execute {
         val snapshot = Properties().apply {
-            NativeSettingsAbi::class.java.getResourceAsStream("/spotify/settings/9.1.80.2221.properties")!!.use(::load)
+            NativeSettingsAbi::class.java.getResourceAsStream("/spotify/settings/9.1.94.1929.properties")!!.use(::load)
         }
         for (type in NativeSettingsAbi.TYPES) {
             val definition = classDefByOrNull(type)
                 ?: throw PatchException("Spotify settings ABI changed: missing $type")
             if (NativeSettingsAbi.digest(definition) != snapshot.getProperty(type)) {
-                throw PatchException("Spotify settings ABI changed: $type. Use the verified Spotify 9.1.80.2221 APK.")
+                throw PatchException("Spotify settings ABI changed: $type. Use the verified Spotify 9.1.94.1929 APK.")
             }
         }
 
-        val root = mutableClassDefBy("Lp/xlt;").methods.single { it.name == "create" }
+        val root = mutableClassDefBy("Lp/wbs;").methods.single { it.name == "create" }
         val rootInstructions = root.implementation!!.instructions
         val insertion = rootInstructions.indices.single { index ->
-            val reference = (rootInstructions[index] as? ReferenceInstruction)?.reference
-            reference.toString() == "Lp/ion;->c:Ljava/lang/Object;" &&
-                (rootInstructions.getOrNull(index + 1) as? ReferenceInstruction)?.reference.toString() == "Lp/dpb;"
-        }
-        // Snapshot proves v6 is the unfrozen list and v2 is still the root factory here.
-        root.addInstructions(insertion,
-            "invoke-static {v6, v2}, ${EXTENSION}nativebridge/SettingsBridge;->append(Ljava/util/List;Lp/ion;)V")
+            (rootInstructions[index] as? ReferenceInstruction)?.reference.toString() ==
+                "Lp/r06;->i0([Ljava/lang/Object;)Ljava/util/List;" &&
+                rootInstructions.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT &&
+                (rootInstructions.getOrNull(index + 2) as? ReferenceInstruction)?.reference.toString() ==
+                "Lp/fdn1;->E(Ljava/lang/Iterable;)Lp/r8;"
+        } + 2
+        // The native list is fixed-size. Return a copied list before Spotify freezes it.
+        root.addInstructions(insertion, """
+            invoke-static {v0}, ${EXTENSION}nativebridge/SettingsBridge;->append(Ljava/util/List;)Ljava/util/List;
+            move-result-object v0
+        """.trimIndent())
 
-        val analytics = mutableClassDefBy("Lp/c3g0;").methods.single {
-            it.name == "<init>" && it.parameterTypes == listOf("I", "Lp/ct71;", "I")
+        val analytics = mutableClassDefBy("Lp/b3l0;").methods.single {
+            it.name == "<init>" && it.parameterTypes == listOf("I", "Lp/v2g1;", "B")
         }
         val instructions = analytics.implementation!!.instructions
         val marker = instructions.indexOfFirst {
@@ -52,19 +56,22 @@ internal val settingsPatch = bytecodePatch {
         }
         val switch = (marker + 1 until instructions.size).first { instructions[it].opcode == Opcode.PACKED_SWITCH }
         val sink = (switch + 1 until instructions.size).first {
-            (instructions[it] as? ReferenceInstruction)?.reference.toString() == "Lp/it71;->b:Ljava/lang/String;"
+            (instructions[it] as? ReferenceInstruction)?.reference.toString() == "Lp/b3g1;->b:Ljava/lang/String;"
         }
-        // v7's discriminator and metadata strings have been consumed. All native cases
+        // v13's constructor discriminator and metadata strings have been consumed. Native cases
         // use v0 for their label, including ad_partners, so leave v0 intact on mismatch.
         analytics.addInstructionsWithLabels(switch, """
-            const/4 v7, -0x1
-            if-ne v5, v7, :native_labels
+            const/4 v13, -0x1
+            if-ne v11, v13, :native_labels
             const-string v0, "spicetify_settings"
             goto/16 :label_sink
         """.trimIndent(), ExternalLabel("native_labels", analytics.getInstruction(switch)),
             ExternalLabel("label_sink", analytics.getInstruction(sink)))
 
-        mutableClassDefBy("Lcom/spotify/music/SpotifyApplication;").methods.single { it.name == "onCreate" }
+        // SpotifyApplication now inherits its lifecycle from this pinned base class.
+        mutableClassDefBy("Lp/k1a1;").methods.single {
+            it.name == "onCreate" && it.parameterTypes.isEmpty() && it.returnType == "V"
+        }
             .addInstructions(0,
                 "invoke-static/range {p0 .. p0}, ${EXTENSION}PatchSettings;->initialize(Landroid/content/Context;)V")
     }

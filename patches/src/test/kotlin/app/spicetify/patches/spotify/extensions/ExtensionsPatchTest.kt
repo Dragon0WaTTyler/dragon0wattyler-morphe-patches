@@ -2,6 +2,9 @@ package app.spicetify.patches.spotify.extensions
 
 import app.spicetify.patches.spotify.home.homePinsPatch
 import app.spicetify.patches.spotify.settings.settingsPatch
+import app.morphe.patcher.patch.ApkArchitecture
+import app.morphe.patcher.patch.InstallerType
+import app.morphe.patcher.patch.PatchAvailability
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
@@ -55,12 +58,16 @@ class ExtensionsPatchTest {
     }
 
     @Test
-    fun `the extensions and Home pins both get the player bridge from one shared patch`() {
-        assertTrue(playerBridgePatch in extensionsPatch.dependencies)
+    fun `Home pins gets the player bridge while unported extensions have no dependencies`() {
+        assertTrue(extensionsPatch.dependencies.isEmpty())
         assertTrue(playerBridgePatch in homePinsPatch.dependencies)
         // H1 calls into the extension, which the settings patch merges.
         assertTrue(settingsPatch in playerBridgePatch.dependencies)
         assertNull(playerBridgePatch.name, "internal, so Manager never lists it")
+        for (installer in InstallerType.entries) {
+            assertEquals(PatchAvailability.UNAVAILABLE,
+                extensionsPatch.availability!!.resolve(installer, ApkArchitecture.ARM64_V8A))
+        }
     }
 
     @Test

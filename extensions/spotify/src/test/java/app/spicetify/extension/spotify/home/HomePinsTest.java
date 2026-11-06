@@ -250,14 +250,14 @@ public class HomePinsTest {
         assertEquals(Arrays.asList("new Road trip", "C"), describe(HomePins.plan(SHORTCUTS, rows), rows));
     }
 
-    @Test public void onlyPinsNeverPassesTen() {
+    @Test public void onlyPinsNeverPassesEight() {
         List<Library.Item> library = new ArrayList<>();
         List<String> saved = new ArrayList<>();
         List<String> ten = new ArrayList<>();
         for (int i = 0; i < 12; i++) {
             library.add(new Library.Item("spotify:playlist:p" + i, "P" + i, "spotify:image:p" + i, false));
             saved.add("spotify:playlist:p" + i);
-            if (i < 10) ten.add("new P" + i);
+            if (i < 8) ten.add("new P" + i);
         }
         HomePins.choices(library);
         HomePins.setPinned(saved);
@@ -276,7 +276,7 @@ public class HomePinsTest {
         assertFalse("read from what's saved", HomePins.onlyPins());
     }
 
-    @Test public void theGridKeepsSpotifysSizeUnlessThePinsNeedMoreButNeverPassesTen() {
+    @Test public void theGridKeepsSpotifysSizeUnlessThePinsNeedMoreButNeverPassesEight() {
         List<Library.Item> library = new ArrayList<>();
         List<String> saved = new ArrayList<>();
         for (int i = 0; i < 12; i++) {
@@ -296,10 +296,9 @@ public class HomePinsTest {
         assertEquals(Arrays.asList("new P0", "new P1", "new P2", "new P3", "new P4"),
                 describe(HomePins.plan(SHORTCUTS, three), three));
         HomePins.setPinned(saved);
-        assertEquals(Arrays.asList("new P0", "new P1", "new P2", "new P3", "new P4", "new P5", "new P6", "new P7",
-                "new P8", "new P9"), describe(HomePins.plan(SHORTCUTS, three), three));
+        assertEquals(Arrays.asList("new P0", "new P1", "new P2", "new P3", "new P4", "new P5", "new P6", "new P7"), describe(HomePins.plan(SHORTCUTS, three), three));
         HomePins.setPinned(Collections.emptyList());
-        assertEquals(10, HomePins.plan(SHORTCUTS, ten).size());
+        assertEquals(8, HomePins.plan(SHORTCUTS, ten).size());
     }
 
     @Test public void aPinWithoutATitleGetsNoTileAndDoesntGrowTheGrid() {
@@ -471,13 +470,13 @@ public class HomePinsTest {
     }
 
     /** Spotify's row for a tile that opens {@code uri} and stands for it. */
-    private static p.goz0 row(String uri, String title) {
+    private static p.x071 row(String uri, String title) {
         return row(uri, uri, title);
     }
 
     /** Spotify's row for a tile that opens {@code link} and stands for {@code entity}, hidable as a shortcut. */
-    private static p.goz0 row(String link, String entity, String title) {
-        return new p.goz0(new p.nnz0(link, 2, title, "spotify:image:" + title, false, entity));
+    private static p.x071 row(String link, String entity, String title) {
+        return new p.x071(new p.i071(link, 2, title, "spotify:image:" + title, false, entity));
     }
 
     private static ArrayList<Object> rows(Object... rows) {
@@ -489,7 +488,7 @@ public class HomePinsTest {
         List<String> entries = new ArrayList<>();
         for (Object entry : plan) {
             if (entry instanceof String[]) entries.add("new " + ((String[]) entry)[1]);
-            else entries.add(rows.contains(entry) ? ((p.goz0) entry).a.b : "a row Spotify didn't send");
+            else entries.add(rows.contains(entry) ? ((p.x071) entry).a.b : "a row Spotify didn't send");
         }
         return entries;
     }

@@ -18,13 +18,13 @@ class MountInstallTest {
     }
 
     @Test
-    fun `server files cannot be selected for a mount install`() {
+    fun `unported server files cannot be selected for any install`() {
         val availability = requireNotNull(localFilesFromServerPatch.availability)
         assertEquals(PatchAvailability.UNAVAILABLE,
             availability.resolve(InstallerType.MOUNT, ApkArchitecture.ARM64_V8A))
-        assertEquals(PatchAvailability.DISABLED,
+        assertEquals(PatchAvailability.UNAVAILABLE,
             availability.resolve(InstallerType.STANDARD, ApkArchitecture.ARM64_V8A))
-        assertEquals(PatchAvailability.DISABLED,
+        assertEquals(PatchAvailability.UNAVAILABLE,
             availability.resolve(InstallerType.SHIZUKU, ApkArchitecture.ARM64_V8A))
     }
 }

@@ -41,12 +41,33 @@ import java.util.List;
 /** Snapshot of the native constructors, renderers, navigation, and DI traced for this build. */
 public final class NativeSettingsAbi {
     public static final List<String> TYPES = Arrays.asList(
-        "Lcom/spotify/music/SpotifyApplication;", "Lp/xlt;", "Lp/ion;", "Lp/yv80;",
-        "Lp/tdn;", "Lp/tcn;", "Lp/afr;", "Lp/rp60;", "Lp/rfr0;", "Lp/xh0;",
-        "Lp/tyh0;", "Lp/gtl;", "Lp/ftl;", "Lp/dtl;", "Lp/etl;", "Lp/qf60;",
-        "Lkotlin/jvm/functions/Function1;", "Lp/gke;", "Lp/k2u;", "Lp/osa0;",
-        "Lp/hka1;", "Lp/wgy0;", "Lp/dm70;", "Lp/s8;", "Lp/qte;", "Lp/pmy0;",
-        "Lp/cmy0;", "Lp/rk50;", "Lp/nsa0;", "Lp/gv90;", "Lp/abe1;", "Lp/c3g0;"
+        "Lcom/spotify/music/SpotifyApplication;", "Lp/k1a1;", "Lp/loo;",
+        "Lp/wbs;",
+        "Lp/mr51;",
+        "Lp/ufo;",
+        "Lp/tfo;",
+        "Lp/ttf;",
+        "Lp/ssx0;",
+        "Lp/sfo;",
+        "Lp/bhn;",
+        "Lp/vod0;",
+        "Lp/l5b0;",
+        "Lp/fj0;",
+        "Lp/tbn0;",
+        "Lp/bjf0;",
+        "Lp/vcj1;",
+        "Lp/ugx;",
+        "Lp/y9x;",
+        "Lp/rfo;",
+        "Lp/me30;",
+        "Lp/qra0;",
+        "Lp/dhk1;",
+        "Lp/b3l0;",
+        "Lp/b3g1;",
+        "Lp/v2g1;",
+        "Lp/r06;",
+        "Lp/fdn1;",
+        "Lp/r8;"
     );
 
     /**

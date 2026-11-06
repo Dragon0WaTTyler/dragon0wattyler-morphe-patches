@@ -4,6 +4,9 @@ import app.morphe.patcher.Patcher
 import app.morphe.patcher.PatcherConfig
 import app.morphe.patcher.apk.ApkUtils.applyTo
 import app.morphe.patcher.patch.PatchLoader
+import app.morphe.patcher.patch.ApkArchitecture
+import app.morphe.patcher.patch.InstallerType
+import app.morphe.patcher.patch.PatchAvailability
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import kotlinx.coroutines.runBlocking
@@ -33,7 +36,10 @@ fun main(args: Array<String>) {
     check(spotify.size == 8 && spotify.map { it.name }.toSet().size == 8) {
         "Expected eight distinct Spotify patches, got ${spotify.map { it.name }}"
     }
-    val patches = if (selection == "all") spotify.toSet() else setOf(spotify.single { it.name == selection })
+    verifySpotifyNativeBridge(bundle, input)
+    val supported = spotify.filter { it.availability?.resolve(InstallerType.STANDARD, ApkArchitecture.ARM64_V8A) != PatchAvailability.UNAVAILABLE }
+    check(supported.size == 6) { "Expected six ported Spotify patches: ${supported.map { it.name }}" }
+    val patches = if (selection == "all") supported.toSet() else setOf(spotify.single { it.name == selection })
     val workspace = Files.createTempDirectory("morphe-spotify-").toFile()
     try {
         Patcher(PatcherConfig(input, workspace, validate = true)).use { patcher ->

@@ -25,19 +25,8 @@ internal const val COMPOSE_THEME_CLASS = "Lapp/spicetify/extension/spotify/theme
 private const val BRUSH = "Landroidx/compose/ui/graphics/Brush;"
 private val PUBLIC_STATIC_FINAL = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL)
 
-/** Compose's Color(Long), which turns an ARGB constant into a Compose color. */
-private const val COLOR = "Lp/iae1;->g(J)J"
-
 /** Spotify's #282828 surface, as a constant. */
 private const val SURFACE = 0xFF282828L
-
-/** The static fields that keep a #282828 surface for two Compose screens, set when their class loads. */
-private val SURFACE_FIELDS = listOf("Lp/pz01;->a:J", "Lp/t5s0;->b:J")
-
-/** ProvideEncoreTheme, which picks the Encore palette for a theme and provides it. */
-internal object ProvideEncoreThemeFingerprint : Fingerprint(
-    filters = listOf(string("EncoreLayoutTheme: Invalid screen dimensions (")),
-)
 
 /** The merged lambda holding the default value of the Encore palette's CompositionLocal. */
 internal object EncoreThemeDefaultsFingerprint : Fingerprint(
@@ -46,9 +35,9 @@ internal object EncoreThemeDefaultsFingerprint : Fingerprint(
     ),
 )
 
-/** The static initializer of Encore's raw colors: the only method with these three grays. */
-internal object EncoreRawColorsFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.STATIC, AccessFlags.CONSTRUCTOR),
+/** The raw gray group's constructor, which supplies the three characteristic Encore grays. */
+internal object EncoreRawGraysFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
     parameters = listOf(),
     filters = listOf(literal(0xFF181818L), literal(0xFF333333L), literal(0xFF535353L)),
 )
@@ -92,18 +81,23 @@ internal val themeComposePatch = bytecodePatch {
             log.info("ComposeTheme hook: $definingClass->$name index $index")
         }
 
-        // The palette getters in ProvideEncoreTheme's theme switch all return the palette type, and the
-        // default dark palette is the one case read from a static field.
-        val provide = ProvideEncoreThemeFingerprint.matchAll(1..1).single().method
-        val paletteType = provide.implementation!!.instructions
-            .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
-            .filter { it.parameterTypes.isEmpty() && it.returnType.startsWith("L") }
-            .groupingBy { it.returnType }.eachCount().maxByOrNull { it.value }?.key
-            ?: throw PatchException("Encore palette type not found.")
-        val darkPalette = provide.staticReads().singleOrNull { it.value.type == paletteType }?.value
-            ?: throw PatchException("Expected one static read of Spotify's default Encore palette.")
+        // Spotify 9.1.94 selects color and layout palettes separately. The defaults lambda reads the
+        // dark color palette, whose fifteen semantic groups share the same four-part color schema.
         val defaults = EncoreThemeDefaultsFingerprint.matchAll(1..1).single().method
-        for (method in listOf(provide, defaults)) {
+        val darkPalette = defaults.staticReads().map { it.value }.singleOrNull { field ->
+            val groups = classDefByOrNull(field.type)?.instanceFields?.toList().orEmpty()
+            groups.size == 15 && groups.map { it.type }.distinct().size == 1 &&
+                classDefByOrNull(groups.first().type)?.instanceFields?.toList()?.let { parts ->
+                    parts.size == 4 && parts.all { it.type.startsWith("L") }
+                } == true
+        } ?: throw PatchException("Expected one default Encore color palette with fifteen semantic groups.")
+        val paletteType = darkPalette.type
+        val selector = Fingerprint(
+            parameters = listOf("I"),
+            returnType = paletteType,
+            filters = listOf(fieldAccess(darkPalette, Opcode.SGET_OBJECT)),
+        ).matchAll(1..1).single().method
+        for (method in listOf(selector, defaults)) {
             val read = method.staticReads().singleOrNull { it.value == darkPalette }
                 ?: throw PatchException("Expected one read of $darkPalette in ${method.definingClass}.")
             val register = (method.implementation!!.instructions[read.index] as OneRegisterInstruction).registerA
@@ -115,7 +109,18 @@ internal val themeComposePatch = bytecodePatch {
             """)
         }
 
-        val rawColors = EncoreRawColorsFingerprint.matchAll(1..1).single().method
+        // The raw groups now initialize in their own constructors. Find their shared holder by the
+        // gray constructor call, then install the hook after its fully constructed singleton is stored.
+        val grays = EncoreRawGraysFingerprint.matchAll(1..1).single().method
+        val rawColors = Fingerprint(
+            accessFlags = listOf(AccessFlags.STATIC, AccessFlags.CONSTRUCTOR),
+            parameters = listOf(),
+            filters = listOf(methodCall(
+                definingClass = grays.definingClass,
+                name = "<init>",
+                parameters = listOf(),
+            )),
+        ).matchAll(1..1).single().method
         val store = rawColors.implementation!!.instructions.withIndex().singleOrNull { (_, instruction) ->
             instruction.opcode == Opcode.SPUT_OBJECT &&
                 ((instruction as ReferenceInstruction).reference as FieldReference).definingClass == rawColors.definingClass
@@ -139,12 +144,26 @@ internal val themeComposePatch = bytecodePatch {
             move-result-wide p3
         """)
 
-        // Each initializer stores Color(0xFF282828) in its field: hook the color before the store.
-        for (field in SURFACE_FIELDS) {
-            val initializer = mutableClassDefBy(field.substringBefore("->")).methods.single { it.name == "<clinit>" }
+        val grayCode = grays.implementation!!.instructions.toList()
+        val colorConverter = grayCode.indices.mapNotNull { index ->
+            val constant = grayCode[index] as? WideLiteralInstruction
+            val call = (grayCode.getOrNull(index + 1) as? ReferenceInstruction)?.reference as? MethodReference
+            call?.takeIf {
+                constant?.wideLiteral == 0xFF181818L && it.parameterTypes == listOf("J") && it.returnType == "J"
+            }
+        }.singleOrNull() ?: throw PatchException("Expected one Compose Color conversion for Encore's raw gray.")
+
+        // The two remaining static #282828 surfaces use the same Color conversion as the raw grays.
+        val surfaces = Fingerprint(
+            accessFlags = listOf(AccessFlags.STATIC, AccessFlags.CONSTRUCTOR),
+            parameters = listOf(),
+            filters = listOf(literal(SURFACE)),
+        ).matchAll(2..2)
+        for (surface in surfaces) {
+            val initializer = surface.method
             val code = initializer.implementation!!.instructions.toList()
-            val constant = code.indices.singleOrNull { index -> storesSurface(code, index, field) }
-                ?: throw PatchException("Expected Spotify's #282828 surface stored in $field.")
+            val constant = code.indices.singleOrNull { index -> storesSurface(code, index, colorConverter) }
+                ?: throw PatchException("Expected one Spotify #282828 surface in ${initializer.definingClass}.")
             val color = (code[constant] as OneRegisterInstruction).registerA
             initializer.hook(constant + 3, """
                 invoke-static/range { v$color .. v${color + 1} }, $COMPOSE_THEME_CLASS->surface(J)J
@@ -154,19 +173,18 @@ internal val themeComposePatch = bytecodePatch {
     }
 }
 
-/** True when [index] loads #282828, passes it to Color(), and stores the result in [field], all in one register. */
-private fun storesSurface(code: List<Instruction>, index: Int, field: String): Boolean {
+/** True when [index] loads #282828, converts it to a Compose color, and stores it in one register. */
+private fun storesSurface(code: List<Instruction>, index: Int, colorConverter: MethodReference): Boolean {
     val constant = code[index]
     if (constant.opcode != Opcode.CONST_WIDE || (constant as WideLiteralInstruction).wideLiteral != SURFACE) return false
     val register = (constant as OneRegisterInstruction).registerA
     val call = code.getOrNull(index + 1) as? FiveRegisterInstruction ?: return false
     val result = code.getOrNull(index + 2) ?: return false
     val store = code.getOrNull(index + 3) ?: return false
-    return call.opcode == Opcode.INVOKE_STATIC && (call as ReferenceInstruction).reference.toString() == COLOR &&
+    return call.opcode == Opcode.INVOKE_STATIC && (call as ReferenceInstruction).reference == colorConverter &&
         call.registerCount == 2 && call.registerC == register &&
         result.opcode == Opcode.MOVE_RESULT_WIDE && (result as OneRegisterInstruction).registerA == register &&
-        store.opcode == Opcode.SPUT_WIDE && (store as OneRegisterInstruction).registerA == register &&
-        (store as ReferenceInstruction).reference.toString() == field
+        store.opcode == Opcode.SPUT_WIDE && (store as OneRegisterInstruction).registerA == register
 }
 
 private fun MutableMethod.staticReads() = implementation!!.instructions.withIndex()

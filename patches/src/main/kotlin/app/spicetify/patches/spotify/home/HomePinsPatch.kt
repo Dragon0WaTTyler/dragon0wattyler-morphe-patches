@@ -14,7 +14,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import java.util.Properties
 
-private const val SECTION_MODEL = "Lp/joz0;"
+private const val SECTION_MODEL = "Lp/a171;"
 private const val HOME_TILE_BRIDGE = "Lapp/spicetify/extension/spotify/home/nativebridge/HomeTileBridge;"
 
 @Suppress("unused")
@@ -30,26 +30,26 @@ val homePinsPatch = bytecodePatch(
 
     execute {
         val snapshot = Properties().apply {
-            NativeSettingsAbi::class.java.getResourceAsStream("/spotify/home/9.1.80.2221.properties")!!.use(::load)
+            NativeSettingsAbi::class.java.getResourceAsStream("/spotify/home/9.1.94.1929.properties")!!.use(::load)
         }
         for (type in snapshot.stringPropertyNames()) {
             val definition = classDefByOrNull(type)
                 ?: throw PatchException("Spotify Home ABI changed: missing $type")
             if (NativeSettingsAbi.digest(definition) != snapshot.getProperty(type)) {
-                throw PatchException("Spotify Home ABI changed: $type. Use the verified Spotify 9.1.80.2221 APK.")
+                throw PatchException("Spotify Home ABI changed: $type. Use the verified Spotify 9.1.94.1929 APK.")
             }
         }
 
-        // The section model's constructor, which Lp/jne1;->u calls once Spotify has cut its rows to 10, gets
+        // The section model's constructor, which Lp/ann1;->u calls once Spotify has cut its rows to 8, gets
         // them from the bridge before storing them from p2 at index 1. Both native grid renderers read this
         // model. Spotify's rows stay the same objects, with their click handlers, and the bridge adds a tile
         // only for a pin Spotify left out.
         val constructor = mutableClassDefBy(SECTION_MODEL).methods.single {
             it.name == "<init>" && it.parameterTypes ==
-                listOf("Ljava/lang/String;", "Ljava/util/ArrayList;", "Lp/qt10;")
+                listOf("Ljava/lang/String;", "Ljava/util/ArrayList;", "Lp/fo50;")
         }
         if (!isRowsStore(constructor.implementation!!.instructions.getOrNull(1))) {
-            throw PatchException("Spotify Home ABI changed: $SECTION_MODEL. Use the verified Spotify 9.1.80.2221 APK.")
+            throw PatchException("Spotify Home ABI changed: $SECTION_MODEL. Use the verified Spotify 9.1.94.1929 APK.")
         }
         constructor.addInstructions(1, """
             invoke-static {p1, p2}, $HOME_TILE_BRIDGE->apply(Ljava/lang/String;Ljava/util/ArrayList;)Ljava/util/ArrayList;
@@ -60,7 +60,7 @@ val homePinsPatch = bytecodePatch(
 }
 
 /**
- * Whether [instruction] is `iput-object v2, v0, Lp/joz0;->a`, the section model's constructor storing its rows
+ * Whether [instruction] is `iput-object v2, v0, Lp/a171;->a`, the section model's constructor storing its rows
  * from p2, which the hook replaces first.
  */
 internal fun isRowsStore(instruction: Instruction?): Boolean =

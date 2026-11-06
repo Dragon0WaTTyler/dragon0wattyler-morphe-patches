@@ -45,6 +45,8 @@ class ThemeResourcesTest {
     fun `the Compose table gives each field path its color's stock value`() {
         val paths = loadComposePaths()
         assertEquals(listOf(83, 8), paths.map { it.size })
+        assertEquals("spotify_green_157", paths[1]["b.j"])
+        assertEquals(null, paths[1]["b.i"])
         val (palette, raw) = composeTable(parse(fixture()), roleMap, paths).split(';')
         assertEquals(83, palette.split(',').size)
         assertTrue("a.a.b.a=dark_base_background_tinted_base@1AFFFFFF" in palette.split(','))
@@ -74,7 +76,7 @@ class ThemeResourcesTest {
         assertTrue("<item type=\"color\" name=\"gray_10\" />" in xml)
     }
 
-    /** Every mapped color. The alias and the translucent colors carry their 9.1.80.2221 stock values; the rest are opaque. */
+    /** Every mapped color. The alias and the translucent colors carry their 9.1.94.1929 stock values; the rest are opaque. */
     private fun fixture(): String {
         val stock = mapOf(
             "gray_20" to "#FF333333",

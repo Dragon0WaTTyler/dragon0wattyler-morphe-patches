@@ -28,32 +28,32 @@ val playerAdCardsPatch = bytecodePatch(
 
     execute {
         val snapshot = Properties().apply {
-            NativeSettingsAbi::class.java.getResourceAsStream("/spotify/ads/player-9.1.80.2221.properties")!!.use(::load)
+            NativeSettingsAbi::class.java.getResourceAsStream("/spotify/ads/player-9.1.94.1929.properties")!!.use(::load)
         }
         for (type in snapshot.stringPropertyNames()) {
             val definition = classDefByOrNull(type)
                 ?: throw PatchException("Spotify player advertising ABI changed: missing $type")
             if (NativeSettingsAbi.digest(definition) != snapshot.getProperty(type)) {
-                throw PatchException("Spotify player advertising ABI changed: $type. Use the verified Spotify 9.1.80.2221 APK.")
+                throw PatchException("Spotify player advertising ABI changed: $type. Use the verified Spotify 9.1.94.1929 APK.")
             }
         }
 
-        val method = mutableClassDefBy("Lp/ja31;").methods.single {
+        val method = mutableClassDefBy("Lp/zwa1;").methods.single {
             it.name == "invoke" && it.parameterTypes == listOf("Ljava/lang/Object;")
         }
         val instructions = method.implementation!!.instructions.toList()
-        val getter = "Lcom/spotify/scrollsita/v1/Section;->o0()Z"
+        val getter = "Lcom/spotify/scrollsita/v1/Section;->Z()Z"
         val matches = instructions.indices.filter {
             (instructions[it] as? ReferenceInstruction)?.reference.toString() == getter
         }
         if (matches.size != 1 || instructions.getOrNull(matches.single() + 1)?.opcode != Opcode.MOVE_RESULT
-            || instructions.getOrNull(matches.single() + 3)?.opcode != Opcode.IF_EQZ
+            || instructions.getOrNull(matches.single() + 2)?.opcode != Opcode.IF_EQZ
         ) {
-            throw PatchException("Expected one Now Playing image-ad mapper in Lp/ja31;->invoke.")
+            throw PatchException("Expected one Now Playing image-ad mapper in Lp/zwa1;->invoke.")
         }
         val result = matches.single() + 1
         val register = (instructions[result] as OneRegisterInstruction).registerA
-        if ((instructions[result + 2] as OneRegisterInstruction).registerA != register) {
+        if ((instructions[result + 1] as OneRegisterInstruction).registerA != register) {
             throw PatchException("Now Playing image-ad branch changed its result register.")
         }
         method.addInstructions(result + 1, """
@@ -61,15 +61,17 @@ val playerAdCardsPatch = bytecodePatch(
             move-result v$register
         """.trimIndent())
 
-        val embeddedAd = mutableClassDefBy("Lp/onq;").methods.single {
-            it.name == "z" && it.returnType == "Z"
+        val embeddedAd = mutableClassDefBy("Lp/qns;").methods.single {
+            it.name == "p" && it.returnType == "Z"
                 && it.parameterTypes == listOf("Lcom/spotify/player/model/ContextTrack;")
         }
         val first = embeddedAd.getInstruction(0)
-        if (first.opcode != Opcode.IGET_OBJECT || (first as TwoRegisterInstruction).registerA != 0
-            || (first as ReferenceInstruction).reference.toString() != "Lp/onq;->b:Ljava/lang/Object;"
+        if (embeddedAd.implementation!!.registerCount != 5
+            || first.opcode != Opcode.IGET_OBJECT || (first as TwoRegisterInstruction).registerA != 3
+            || first.registerB != 3
+            || (first as ReferenceInstruction).reference.toString() != "Lp/qns;->b:Ljava/lang/Object;"
         ) {
-            throw PatchException("Expected the Now Playing embedded-ad predicate in Lp/onq;->z.")
+            throw PatchException("Expected the Now Playing embedded-ad predicate in Lp/qns;->p.")
         }
         embeddedAd.addInstructionsWithLabels(0, """
             invoke-static {}, Lapp/spicetify/extension/spotify/ads/PlayerAdCards;->showEmbeddedAd()Z

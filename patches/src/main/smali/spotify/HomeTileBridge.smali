@@ -1,13 +1,13 @@
 .class public final Lapp/spicetify/extension/spotify/home/nativebridge/HomeTileBridge;
 .super Ljava/lang/Object;
 
-# The Home pins hook hands over each shortcut type section's id and Spotify's capped rows (Lp/goz0;)
-# at Lp/joz0;-><init> index 1, before the model stores them. HomePins.plan decides the rows; this
+# The Home pins hook hands over each shortcut type section's id and Spotify's capped rows (Lp/x071;)
+# at Lp/a171;-><init> index 1, before the model stores them. HomePins.plan decides the rows; this
 # only builds Spotify's tile for a pin Spotify didn't send.
 
 # p0 is the section id and p1 the rows. The answer is HomePins.plan's list, where each String[]
-# {uri, title, image} becomes new Lp/goz0;(new Lp/nnz0;(uri, 0, title, image, false, uri)). nnz0 is
-# (a link, f hide source, b title, c image, e badge, d entity), as Lp/jne1;->u 279 builds it. f 0 leaves
+# {uri, title, image} becomes new Lp/x071;(new Lp/i071;(uri, 0, title, image, false, uri)). i071 is
+# (a link, f hide source, b title, c image, e badge, d entity), as Lp/ann1;->u 236 builds it. f 0 leaves
 # out "Remove from this section", and e false the badge. Null, or anything failing, keeps p1.
 .method public static apply(Ljava/lang/String;Ljava/util/ArrayList;)Ljava/util/ArrayList;
     .locals 9
@@ -40,10 +40,10 @@
     const/4 v2, 0x0
     const/4 v5, 0x0
     move-object v6, v1
-    new-instance v0, Lp/nnz0;
-    invoke-direct/range {v0 .. v6}, Lp/nnz0;-><init>(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;ZLjava/lang/String;)V
-    new-instance v1, Lp/goz0;
-    invoke-direct {v1, v0}, Lp/goz0;-><init>(Lp/nnz0;)V
+    new-instance v0, Lp/i071;
+    invoke-direct/range {v0 .. v6}, Lp/i071;-><init>(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;ZLjava/lang/String;)V
+    new-instance v1, Lp/x071;
+    invoke-direct {v1, v0}, Lp/x071;-><init>(Lp/i071;)V
     move-object v0, v1
 
     :add_row

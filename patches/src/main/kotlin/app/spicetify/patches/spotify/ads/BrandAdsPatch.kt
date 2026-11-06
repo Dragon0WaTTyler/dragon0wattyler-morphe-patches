@@ -26,23 +26,23 @@ val brandAdsPatch = bytecodePatch(
 
     execute {
         val snapshot = Properties().apply {
-            NativeSettingsAbi::class.java.getResourceAsStream("/spotify/ads/9.1.80.2221.properties")!!.use(::load)
+            NativeSettingsAbi::class.java.getResourceAsStream("/spotify/ads/9.1.94.1929.properties")!!.use(::load)
         }
         for (type in snapshot.stringPropertyNames()) {
             val definition = classDefByOrNull(type)
                 ?: throw PatchException("Spotify advertising ABI changed: missing $type")
             if (NativeSettingsAbi.digest(definition) != snapshot.getProperty(type)) {
-                throw PatchException("Spotify advertising ABI changed: $type. Use the verified Spotify 9.1.80.2221 APK.")
+                throw PatchException("Spotify advertising ABI changed: $type. Use the verified Spotify 9.1.94.1929 APK.")
             }
         }
 
         for ((owner, methodName, getter, helper) in listOf(
-            AdsHook(owner = "Lp/jb20;", methodName = "invoke",
-                getter = "Lcom/spotify/casita/v1/resolved/HomeStructure;->p()Lp/ih40;", helper = "home"),
-            AdsHook(owner = "Lp/vot;", methodName = "g",
-                getter = "Lcom/spotify/casita/v1/resolved/HomeStructure;->p()Lp/ih40;", helper = "home"),
-            AdsHook(owner = "Lp/x7v0;", methodName = "a",
-                getter = "Lcom/spotify/browsita/v1/resolved/BrowseStructure;->o()Lp/ih40;", helper = "browse"),
+            AdsHook(owner = "Lp/z960;", methodName = "invoke",
+                getter = "Lcom/spotify/casita/v1/resolved/HomeStructure;->p()Lp/pl80;", helper = "home"),
+            AdsHook(owner = "Lp/uuy;", methodName = "v",
+                getter = "Lcom/spotify/casita/v1/resolved/HomeStructure;->p()Lp/pl80;", helper = "home"),
+            AdsHook(owner = "Lp/jz11;", methodName = "a",
+                getter = "Lcom/spotify/browsita/v1/resolved/BrowseStructure;->o()Lp/pl80;", helper = "browse"),
         )) {
             val method = mutableClassDefBy(owner).methods.single { it.name == methodName }
             val instructions = method.implementation!!.instructions.toList()

@@ -13,6 +13,7 @@ import app.spicetify.patches.spotify.settings.NativeSettingsAbi
 import app.spicetify.patches.spotify.settings.enableSetting
 import app.spicetify.patches.spotify.settings.settingsPatch
 import app.spicetify.patches.spotify.spotifyCompatibility
+import app.spicetify.patches.spotify.requireSpotify9194Port
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import java.util.Properties
@@ -47,23 +48,19 @@ private val serverResourcesPatch = resourcePatch {
 @Suppress("unused")
 val localFilesFromServerPatch = bytecodePatch(
     name = "Local files from a server",
-    description = "Streams audio from an HTTPS WebDAV folder or Jellyfin music library into Local Files and Your Library. " +
+    description = "UNSUPPORTED on Spotify 9.1.94.1929: Your Library uses a new Flow pipeline; server row and playback bridges have not been ported. " +
+        "Streams audio from an HTTPS WebDAV folder or Jellyfin music library into Local Files and Your Library. " +
         "Configure the server in Spicetify settings; playback needs Spotify's Local audio files setting. Experimental; requires byte-range support. " +
         "Not available for root mount installs.",
     default = false,
 ) {
     compatibleWith(spotifyCompatibility)
-    dependsOn(settingsPatch, serverResourcesPatch)
+    // Dependencies are deliberately omitted while unavailable.
 
-    // A root mount install keeps the stock manifest, so the track provider (in its own
-    // :spicetify_server process) and the server browser activity declared above would never be
-    // registered. Manager also uses this resolver for the initial selection, so it, not `default`,
-    // decides whether the patch starts selected.
-    availability { installer, _ ->
-        if (installer == InstallerType.MOUNT) PatchAvailability.UNAVAILABLE else PatchAvailability.DISABLED
-    }
+    availability { _, _ -> PatchAvailability.UNAVAILABLE }
 
     execute {
+        requireSpotify9194Port("Your Library uses a new Flow pipeline; server row and playback bridges have not been ported")
         val snapshot = Properties().apply {
             NativeSettingsAbi::class.java.getResourceAsStream("/spotify/localfiles/9.1.80.2221.properties")!!.use(::load)
         }

@@ -20,8 +20,8 @@ import org.json.JSONObject;
  */
 public final class HomePins {
     private static final int MAX_SHORTCUTS = 64;
-    /** Spotify's own cap on the shortcuts grid: Lp/jne1;->u takes 10 tiles before the hook sees them. */
-    private static final int MAX_TILES = 10;
+    /** Spotify's own cap on the shortcuts grid: Lp/ann1;->u takes 8 tiles before the hook sees them. */
+    private static final int MAX_TILES = 8;
     private static SharedPreferences preferences;
     private static boolean onlyPins;
     private static final LinkedHashMap<String, Pin> pins = new LinkedHashMap<>();
@@ -191,9 +191,9 @@ public final class HomePins {
         try {
             for (int i = 0; i < rows.size(); i++) {
                 Object row = rows.get(i);
-                if (row == null || !row.getClass().getName().equals("p.goz0")) return null;
+                if (row == null || !row.getClass().getName().equals("p.x071")) return null;
                 Object tile = row.getClass().getField("a").get(row);
-                if (tile == null || !tile.getClass().getName().equals("p.nnz0")) return null;
+                if (tile == null || !tile.getClass().getName().equals("p.i071")) return null;
                 links[i] = key((String) tile.getClass().getField("a").get(tile));
                 ids[i] = key((String) tile.getClass().getField("d").get(tile));
                 titles[i] = (String) tile.getClass().getField("b").get(tile);
@@ -201,7 +201,7 @@ public final class HomePins {
         } catch (ReflectiveOperationException | ClassCastException | SecurityException changedNativeModel) {
             return null;
         }
-        // Spotify's own test for a shortcuts section, Lp/tve1;->t, looks for this in the id too.
+        // Spotify's shortcut section identifiers contain this marker.
         return arrange(sectionId != null && sectionId.contains("shortcuts"), rows, links, ids, titles);
     }
 
