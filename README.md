@@ -31,7 +31,7 @@ The `dev` branch publishes prereleases through the official Morphe template work
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0-dev.10](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.10)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;206 patches total
+> **[v1.0.0-dev.11](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.11)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;207 patches total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;110 patches</summary>
 <br>
@@ -327,6 +327,23 @@ The `dev` branch publishes prereleases through the official Morphe template work
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Example Patch](#example-patch) | Example patch to start with. |  |
+
+</details>
+
+<details open>
+<summary>📦 Readest&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Package name:** `com.bilingify.readest`
+
+**🎯 Supported versions:**
+
+| 0.12.20 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Readest S Pen Air Actions](#readest-s-pen-air-actions) | Adds S Pen single/double press and left/right gestures for page turns. |  |
 
 </details>
 

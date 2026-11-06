@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.0-dev.10",
+  "version": "1.0.0-dev.11",
   "patches": [
     {
       "name": "AI channel filter",
@@ -10240,6 +10240,33 @@
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Readest S Pen Air Actions",
+      "description": "Adds S Pen single/double press and left/right gestures for page turns.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.bilingify.readest",
+          "name": "Readest",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#5A3EFF",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "0.12.20",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
               "description": null
             }
           ]

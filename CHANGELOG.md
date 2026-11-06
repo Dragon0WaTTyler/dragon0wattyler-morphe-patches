@@ -1,3 +1,9 @@
+## [1.0.0-dev.11](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.10...v1.0.0-dev.11) (2026-11-06)
+
+### ✨ New Features
+
+* **readest:** add experimental S Pen Air Actions (not physically verified) ([df53f42](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/commit/df53f42a50a1062ded1d4f4264dbf23eb419d182))
+
 ## [1.0.0-dev.10](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/compare/v1.0.0-dev.9...v1.0.0-dev.10) (2026-11-06)
 
 ### ✨ New Features
