@@ -1,38 +1,42 @@
 # Dragon0WaTTyler's Morphe Patches
 
-An independent, growing collection of **Morphe patches for Android apps**, focused on customization, useful new features, and improved user experience across different apps. Releases may include patches from a pinned Morphe base alongside independent additions. This is not an official Morphe project or an official release from the developers of the supported apps.
-
-The patch list below shows the apps, patches, and versions included in the current release. Additional app support may be added over time.
-
-## App catalog
-
-Choose an app to see its features, supported versions, changelog and release downloads.
-
-| App / patch | Current status | Details | Releases |
-| --- | --- | --- | --- |
-| **YouTube — PocketTube Groups** | Development candidate | [Features, compatibility and limitations](apps/pockettube-groups.md) | [PocketTube V8.1 candidate](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.4) |
-| **Blackmagic Camera** | Experimental development candidate | [Features, compatibility and limitations](apps/blackmagic-camera.md) | [Repository prereleases](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases) |
-| **Spotify** | 9.1.94.1929 ARM64 · 8 ported; runtime testing pending | [Features, compatibility and limitations](apps/spotify-spicetify.md) | [Repository prereleases](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases) |
-| **Readest — S Pen Air Actions** | Experimental · 0.12.20 ARM64 · not physically verified | [Compatibility, setup and limitations](apps/readest-s-pen-air-actions.md) | Repository prereleases |
-
-YouTube, YouTube Music, Reddit, PocketTube, Blackmagic Camera, Spotify, and Readest patches share this repository's multi-app source and release stream. App support is grouped by application in Morphe Manager and in the catalog below.
+An independent, actively maintained **multi-app Morphe patch source for Android**, combining a pinned Morphe base with custom additions. This is not an official Morphe project or an official release from supported app developers.
 
 <a href="https://morphe.software/add-source?github=Dragon0WaTTyler/dragon0wattyler-morphe-patches"><img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe Manager" height="48"></a>
 
+**Quick links:** [Releases](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases) · [Patch catalog](#patches-list) · [Documentation](#app-catalog) · [Issues](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/issues) · [Stable landing page](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches)
+
+## App catalog
+
+The current development release has **207 entries** in its generated patch catalog, including **one example/template patch**. Real app patches and universal patches are grouped below; every app shares the same `.mpp` release stream.
+
+| App / feature | Patches in current catalog | Target and verification | Details |
+| --- | ---: | --- | --- |
+| **YouTube / PocketTube Groups** | 110 | Multiple YouTube versions; custom PocketTube candidate targets `21.30.216` and still needs device layout/menu validation | [PocketTube guide](apps/pockettube-groups.md) |
+| **YouTube Music** | 49 | Multiple versions; latest experimental target `9.43.51` | [Patch list](#patches-list) |
+| **Reddit** | 31 | Multiple versions; latest experimental target `2026.44.0` | [Patch list](#patches-list) |
+| **Blackmagic Camera** | 2 | `3.5.1.0044`; experimental photo capture features, device validation pending | [Blackmagic guide](apps/blackmagic-camera.md) |
+| **Spotify / Spicetify** | 8 | `9.1.94.1929` ARM64; offline implementation checks passed, authenticated runtime unverified | [Spotify guide](apps/spotify-spicetify.md) |
+| **Readest / S Pen Air Actions** | 1 | `0.12.20` ARM64; Galaxy S23 Ultra functionality reported working on 2026-11-06 | [Readest guide](apps/readest-s-pen-air-actions.md) |
+| **Universal** | 5 | General-purpose patches, compatibility depends on app/install method | [Patch list](#patches-list) |
+
+Patch totals above include patches imported from the pinned base, not solely original patches from this repository. The extra example/template target in the generated list is not a recommended real app. Consult each patch's precise compatibility below. No individual app has a separate maintained release feed at present.
+
 ## Install or update in Morphe Manager
 
-1. Open the add-source link above, or add `Dragon0WaTTyler/dragon0wattyler-morphe-patches` under Patch sources.
-2. Enable **Pre-release** for this source to receive `dev` branch builds.
-3. Select this source for a supported app when patching. Check the patches list and version compatibility below. Avoid selecting another independent patch source for the same app, since sources can conflict.
-4. When this repository publishes an update, use the Update badge in Morphe Manager and repatch the affected app.
+1. Add this source via the button above or enter `Dragon0WaTTyler/dragon0wattyler-morphe-patches` under Patch sources.
+2. Enable **Pre-release** for development builds; enable the experimental-version option when selecting a marked experimental target.
+3. Select the app, compatible *original* APK/split archive and desired patches. For Spotify, retain all matching splits; for Readest, use the original `0.12.20` ARM64 APK.
+4. Back up local data before repatching. Different APK signing certificates can prevent installing a modified app over the original; uninstalling can delete books, settings, and other offline data.
+5. Use the patch-source update in Morphe Manager when a new development bundle is published. Avoid combining independent sources for the same app.
 
-The `dev` branch publishes prereleases through the official Morphe template workflow. Changes merged to `main` publish stable releases. Release bundles and metadata are generated by GitHub Actions.
+The `dev` branch generates **pre-releases** and the `main` branch is reserved for stable releases. Release bundles and the catalog below are generated by GitHub Actions.
 
 ## Patches list
 
-<!-- PATCHES_START EXPANDED -->
+<!-- PATCHES_START -->
 > **[v1.0.0-dev.11](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.11)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;207 patches total
-<details open>
+<details>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;110 patches</summary>
 <br>
 
@@ -158,7 +162,7 @@ The `dev` branch publishes prereleases through the official Morphe template work
 
 </details>
 
-<details open>
+<details>
 <summary>📦 YouTube Music&nbsp;&nbsp;•&nbsp;&nbsp;49 patches</summary>
 <br>
 
@@ -223,7 +227,7 @@ The `dev` branch publishes prereleases through the official Morphe template work
 
 </details>
 
-<details open>
+<details>
 <summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;31 patches</summary>
 <br>
 
@@ -270,7 +274,7 @@ The `dev` branch publishes prereleases through the official Morphe template work
 
 </details>
 
-<details open>
+<details>
 <summary>📦 Blackmagic Camera&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
@@ -288,7 +292,7 @@ The `dev` branch publishes prereleases through the official Morphe template work
 
 </details>
 
-<details open>
+<details>
 <summary>📦 Spotify&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
 
@@ -313,7 +317,7 @@ The `dev` branch publishes prereleases through the official Morphe template work
 
 </details>
 
-<details open>
+<details>
 <summary>📦 XYZ app&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -330,7 +334,7 @@ The `dev` branch publishes prereleases through the official Morphe template work
 
 </details>
 
-<details open>
+<details>
 <summary>📦 Readest&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -347,7 +351,7 @@ The `dev` branch publishes prereleases through the official Morphe template work
 
 </details>
 
-<details open>
+<details>
 <summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
@@ -363,23 +367,24 @@ The `dev` branch publishes prereleases through the official Morphe template work
 
 <!-- PATCHES_END -->
 
-## PocketTube Groups status
+## Validation status
 
-The most recent PocketTube-specific candidate linked in this catalog is **V8.1**, published in [v1.0.0-dev.4](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.4). Build and fixture checks are documented, but the Samsung-device layout/menu behavior still needs confirmation against the target APK. Unsupported native menu contexts use a fallback; live PocketTube sync is not implemented.
+- **Readest S Pen Air Actions:** added in [v1.0.0-dev.11](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.11). Manifest/resource and stock-APK application checks passed; the maintainer subsequently **reported the S Pen controls working on a Galaxy S23 Ultra (2026-11-06)**. Other Samsung devices, other Readest versions and all reading modes are not independently verified.
+- **Spotify:** eight patches ported for 9.1.94.1929 with local tests and an Android emulator native-bridge probe. Sign-in, catalog and playback on a physical device remain unverified; [backend restrictions](apps/spotify-spicetify.md#runtime-limitations) may affect modified clients.
+- **Blackmagic Camera:** the two photo-mode patches are available as experimental candidates, **not** merely planned. Save/capture behavior on physical devices still needs validation; see the [limitations](apps/blackmagic-camera.md#runtime-limitations).
+- **PocketTube Groups:** V8.1 is a historical candidate available in [v1.0.0-dev.4](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.4), while the current shared source continues to include the PocketTube patch. The device-specific layout/menu issues and sync limitations are documented in the [PocketTube guide](apps/pockettube-groups.md).
 
-See the [dedicated PocketTube page](apps/pockettube-groups.md) for candidate downloads, changelogs, verification and compatibility notes. [Blackmagic Camera](apps/blackmagic-camera.md) is listed separately as planned, not released.
+## Build and release
 
-## Build
-
-Use JDK 21, Android SDK 36 / Build Tools 36, then run:
+Use **JDK 21** and **Android SDK 36 / Build Tools 36**:
 
 ```bash
 ./gradlew :patches:test :extensions:youtube:testDebugUnitTest :extensions:music:testDebugUnitTest checkStringResources
 ./gradlew :patches:buildAndroid
 ```
 
-The `.mpp` bundle is written to `patches/build/libs/`. The verified V6.1 candidate used pinned Morphe build dependency sources; its exact build details and limitations are recorded in the verification documents.
+The `.mpp` bundle is written to `patches/build/libs/`. The `dev` release workflow publishes prereleases and regenerates the catalog between `PATCHES_START` and `PATCHES_END`. **Do not hand-edit that generated list**; change patch metadata/source and let the release workflow regenerate it. Build success alone does not prove that an Android app or feature works on a specific phone.
 
 ## License
 
-GPL-3.0-or-later, subject to the preserved Morphe NOTICE and upstream licensing terms. The project includes the required original notices and marks this derivative as modified. No PocketTube proprietary extension code is included.
+[GPL-3.0-or-later](LICENSE), subject to preserved [NOTICE](NOTICE) and upstream/third-party licensing terms. The project is independent, modified, and not endorsed by the app developers. No proprietary PocketTube extension code is included.
