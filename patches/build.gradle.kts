@@ -215,6 +215,23 @@ tasks {
             setArgs(listOf(bundle.absolutePath, apk, selection) + listOfNotNull(providers.gradleProperty("spotifyOutput").orNull))
         }
     }
+    register<JavaExec>("validateReadest") {
+        description = "Applies Readest S Pen Air Actions to a supplied stock Readest APK"
+        group = "verification"
+        dependsOn("testClasses", "buildAndroid")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("app.morphe.patches.readest.ReadestApkBuildKt")
+        doFirst {
+            val apk = providers.gradleProperty("readestApk").orNull
+                ?: throw GradleException("validateReadest requires -PreadestApk=/absolute/path/to/Readest.apk")
+            val output = providers.gradleProperty("readestOutput").orNull
+            val bundle = layout.buildDirectory.file("libs/patches-${project.version}.mpp").get().asFile
+            if (!bundle.isFile) {
+                throw GradleException("No canonical Morphe bundle found at ${bundle.absolutePath}")
+            }
+            setArgs(listOf(bundle.absolutePath, apk) + listOfNotNull(output))
+        }
+    }
     // Used by gradle-semantic-release-plugin.
     publish {
         dependsOn("generatePatchesList")
