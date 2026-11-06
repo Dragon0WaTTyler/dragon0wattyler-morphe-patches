@@ -1,5 +1,7 @@
 package app.spicetify.extension.spotify.localserver;
 
+import app.spicetify.extension.spotify.settings.PatchSettings;
+
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
@@ -37,6 +39,7 @@ public final class ServerArtwork {
      * or null for every other file so Spotify reads the picture itself.
      */
     public static byte[] bytes(String uri) {
+        if (PatchSettings.customizationsPaused()) return null;
         try {
             Context context = ServerConfig.context();
             Uri parsed = uri == null || context == null ? null : Uri.parse(uri);

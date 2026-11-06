@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 import app.spicetify.extension.spotify.settings.SpotifySheet;
+import app.spicetify.extension.spotify.settings.PatchSettings;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,7 +50,7 @@ public final class HomeChips {
      */
     public static boolean onTap(String id) {
         try {
-            if (!PILL_ID.equals(id)) return false;
+            if (PatchSettings.customizationsPaused() || !PILL_ID.equals(id)) return false;
             new Handler(Looper.getMainLooper()).post(HomeChips::choose);
             return true;
         } catch (Throwable e) {

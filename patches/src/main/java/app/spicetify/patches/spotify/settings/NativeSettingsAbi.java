@@ -42,6 +42,7 @@ import java.util.List;
 public final class NativeSettingsAbi {
     public static final List<String> TYPES = Arrays.asList(
         "Lcom/spotify/music/SpotifyApplication;", "Lp/k1a1;", "Lp/loo;",
+        "Lp/yc81;", "Lretrofit2/HttpException;",
         "Lp/wbs;",
         "Lp/mr51;",
         "Lp/ufo;",

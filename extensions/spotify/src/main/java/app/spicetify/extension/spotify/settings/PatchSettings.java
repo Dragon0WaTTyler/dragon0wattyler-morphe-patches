@@ -15,10 +15,12 @@ public final class PatchSettings {
     private static final String HIDE_PREMIUM_TAB = "hide_premium_tab";
     private static final String HIDE_BRAND_ADS = "hide_brand_ads";
     private static final String HIDE_PLAYER_AD_CARDS = "hide_player_ad_cards";
+    private static final String PAUSE_CUSTOMIZATIONS = "pause_customizations";
     private static volatile SharedPreferences preferences;
     private static volatile Context applicationContext;
     private static volatile String startupState;
     private static volatile boolean restartMarked;
+    private static volatile boolean pausedAtStartup;
 
     private PatchSettings() {}
 
@@ -26,9 +28,14 @@ public final class PatchSettings {
         if (InstalledPatches.serverFiles() && ServerProcess.skipApplication(context)) return;
         applicationContext = context.getApplicationContext();
         preferences = applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE);
-        if (InstalledPatches.homePins()) HomePins.initialize(context);
+        pausedAtStartup = pauseRequested();
+        if (!pausedAtStartup && InstalledPatches.homePins()) HomePins.initialize(context);
         startupState = restartState();
         restartMarked = false;
+        if (pausedAtStartup) {
+            if (InstalledPatches.themeColors()) ThemeRuntime.install(context);
+            return;
+        }
         if (InstalledPatches.serverFiles()) {
             ServerConfig.initialize(context);
             ServerIndex.scanAsync();
@@ -54,12 +61,26 @@ public final class PatchSettings {
 
     private static String restartState() {
         return hidePremiumTabEnabled() + "|" + hideBrandAdsEnabled() + "|" + hidePlayerAdCardsEnabled()
-                + "|" + HomePins.onlyPins();
+                + "|" + HomePins.onlyPins() + "|" + pauseRequested();
+    }
+
+    /** Stable for this process so a comparison never leaves half of a theme active. */
+    public static boolean customizationsPaused() { return pausedAtStartup; }
+
+    public static boolean pauseRequested() {
+        SharedPreferences current = preferences;
+        return current != null && current.getBoolean(PAUSE_CUSTOMIZATIONS, false);
+    }
+
+    public static void setPauseRequested(boolean paused) {
+        SharedPreferences current = preferences;
+        if (current == null) throw new IllegalStateException("Spicetify settings are not initialized.");
+        current.edit().putBoolean(PAUSE_CUSTOMIZATIONS, paused).apply();
     }
 
     public static boolean cleanSharingEnabled() {
         SharedPreferences current = preferences;
-        return current == null || current.getBoolean(CLEAN_SHARING, true);
+        return !pausedAtStartup && (current == null || current.getBoolean(CLEAN_SHARING, true));
     }
 
     public static void setCleanSharingEnabled(boolean enabled) {
@@ -70,7 +91,7 @@ public final class PatchSettings {
 
     public static boolean hidePremiumTabEnabled() {
         SharedPreferences current = preferences;
-        return current != null && current.getBoolean(HIDE_PREMIUM_TAB, true);
+        return !pausedAtStartup && current != null && current.getBoolean(HIDE_PREMIUM_TAB, true);
     }
 
     public static boolean showPremiumTab(boolean spotifyEnabled) {
@@ -85,7 +106,7 @@ public final class PatchSettings {
 
     public static boolean hideBrandAdsEnabled() {
         SharedPreferences current = preferences;
-        return current != null && current.getBoolean(HIDE_BRAND_ADS, true);
+        return !pausedAtStartup && current != null && current.getBoolean(HIDE_BRAND_ADS, true);
     }
 
     public static void setHideBrandAdsEnabled(boolean enabled) {
@@ -96,7 +117,7 @@ public final class PatchSettings {
 
     public static boolean hidePlayerAdCardsEnabled() {
         SharedPreferences current = preferences;
-        return current != null && current.getBoolean(HIDE_PLAYER_AD_CARDS, true);
+        return !pausedAtStartup && current != null && current.getBoolean(HIDE_PLAYER_AD_CARDS, true);
     }
 
     public static void setHidePlayerAdCardsEnabled(boolean enabled) {

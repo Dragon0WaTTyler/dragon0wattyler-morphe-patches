@@ -23,16 +23,16 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
-import p.cpy;
-import p.dpy;
-import p.epy;
-import p.gpy;
+import p.da20;
+import p.ea20;
+import p.fa20;
+import p.ha20;
 
 /**
- * The fakes copy the shapes found in Spotify 9.1.80.2221's dex: the kept protobuf field names of Home's
+ * The fakes copy the shapes found in Spotify 9.1.94.1929's dex: the kept protobuf field names of Home's
  * casita messages and Search's searchview messages, and the obfuscated chips' public fields. The search
- * chip types live in package {@code p} under their real names, because the filter tells {@code cpy} from
- * {@code dpy} by class.
+ * chip types live in package {@code p} under their real names, because the filter tells {@code da20} from
+ * {@code ea20} by class.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 35, manifest = Config.NONE)
@@ -188,9 +188,9 @@ public class HidePodcastsTest {
 
     @Test
     public void searchChipsLosePodcastsAndTheAudiobooksChipOnlyWithTheOption() {
-        ArrayList<gpy> chips = new ArrayList<>(Arrays.asList(new gpy("videos", new cpy(1)), new gpy("podcasts", new cpy(2)),
-                new gpy("audiobooks", new dpy(3)), new gpy("artists", new dpy(2)), new gpy("tracks", new dpy(7)),
-                new gpy("new", new epy(2)), new gpy("untyped", null)));
+        ArrayList<ha20> chips = new ArrayList<>(Arrays.asList(new ha20("videos", new da20(1)), new ha20("podcasts", new da20(2)),
+                new ha20("audiobooks", new ea20(3)), new ha20("artists", new ea20(2)), new ha20("tracks", new ea20(7)),
+                new ha20("new", new fa20(2)), new ha20("untyped", null)));
 
         assertEquals(Arrays.asList("videos", "artists", "tracks", "new", "untyped"),
                 filterIds(HidePodcasts.filterSearchChips(chips)));
@@ -221,9 +221,9 @@ public class HidePodcastsTest {
         List<Object> items = list(new Item(SHOW), new Item(TRACK));
         List<Object> homeChips = list(new Chip("podcasts-chip"), new Chip("music-chip"));
         List<Object> libraryChips = list(new LibraryChip("podcasts"), new LibraryChip("albums"));
-        ArrayList<gpy> searchChips =
-                new ArrayList<>(Arrays.asList(new gpy("podcasts", new cpy(2)), new gpy("tracks", new dpy(7))));
-        List<gpy> searchBefore = new ArrayList<>(searchChips);
+        ArrayList<ha20> searchChips =
+                new ArrayList<>(Arrays.asList(new ha20("podcasts", new da20(2)), new ha20("tracks", new ea20(7))));
+        List<ha20> searchBefore = new ArrayList<>(searchChips);
 
         List<?> keptItems = HidePodcasts.filterHomeItems(items);
         List<?> keptHomeChips = HidePodcasts.filterHomeChips(homeChips);
@@ -245,7 +245,7 @@ public class HidePodcastsTest {
     public void aFilterThatDropsNothingGivesSpotifyItsOwnList() {
         List<Object> items = list(new Item(TRACK), new Item(ALBUM));
         List<Object> homeChips = list(new Chip("music-chip"));
-        ArrayList<gpy> searchChips = new ArrayList<>(Collections.singletonList(new gpy("tracks", new dpy(7))));
+        ArrayList<ha20> searchChips = new ArrayList<>(Collections.singletonList(new ha20("tracks", new ea20(7))));
         List<Object> libraryChips = list(new LibraryChip("albums"));
 
         assertSame(items, HidePodcasts.filterHomeItems(items));
@@ -260,7 +260,7 @@ public class HidePodcastsTest {
         Extensions.setOn(context, Extensions.HIDE_PODCASTS, false);
         List<Object> items = list(new Item(SHOW));
         List<Object> homeChips = list(new Chip("podcasts-chip"));
-        ArrayList<gpy> searchChips = new ArrayList<>(Collections.singletonList(new gpy("podcasts", new cpy(2))));
+        ArrayList<ha20> searchChips = new ArrayList<>(Collections.singletonList(new ha20("podcasts", new da20(2))));
         List<Object> libraryChips = list(new LibraryChip("podcasts"));
 
         assertFalse(HidePodcasts.hideHomeSection(new Section(4, new WithItem(null, new Item(SHOW)))));
@@ -287,7 +287,7 @@ public class HidePodcastsTest {
         assertTrue(line(), line().endsWith(", the last on Home items: java.lang.NoSuchFieldException: identifier_"));
         List<Object> homeChips = list(new Chip("podcasts-chip"), new Object());
         assertSame(homeChips, HidePodcasts.filterHomeChips(homeChips));
-        ArrayList<Object> searchChips = new ArrayList<>(Arrays.asList(new gpy("podcasts", new cpy(2)), new Object()));
+        ArrayList<Object> searchChips = new ArrayList<>(Arrays.asList(new ha20("podcasts", new da20(2)), new Object()));
         assertSame(searchChips, HidePodcasts.filterSearchChips(searchChips));
         assertFalse(HidePodcasts.hideHomeSection(new Object()));
         assertFalse(HidePodcasts.hideHomeSection(null));
@@ -356,7 +356,7 @@ public class HidePodcastsTest {
                 HidePodcasts.filterHomeChips(list(new Chip("podcasts-chip"), new Chip("default"))));
         assertCounts("Search results", 1, () -> HidePodcasts.hideSearchEntity(new Entity(10, EPISODE, null)));
         assertCounts("Search chips", 2, () -> HidePodcasts.filterSearchChips(new ArrayList<>(Arrays.asList(
-                new gpy("podcasts", new cpy(2)), new gpy("audiobooks", new dpy(3))))));
+                new ha20("podcasts", new da20(2)), new ha20("audiobooks", new ea20(3))))));
         assertCounts("Library chips", 3, () -> HidePodcasts.filterLibraryChips(list(new LibraryChip("podcasts"),
                 new LibraryChip("books"), new LibraryChip("authors"), new LibraryChip("albums"))));
     }
@@ -422,7 +422,7 @@ public class HidePodcastsTest {
 
     private static List<String> filterIds(List<?> chips) {
         List<String> ids = new ArrayList<>();
-        for (Object chip : chips) ids.add(((gpy) chip).a);
+        for (Object chip : chips) ids.add(((ha20) chip).a);
         return ids;
     }
 

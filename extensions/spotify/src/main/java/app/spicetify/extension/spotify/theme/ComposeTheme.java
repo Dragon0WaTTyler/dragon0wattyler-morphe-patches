@@ -242,7 +242,7 @@ public final class ComposeTheme {
             this.theme = theme;
         }
 
-        /** Rebuilds {@code node} through its only constructor, which takes its fields in name order. */
+        /** Rebuilds data classes through their field constructor, or native constant color groups. */
         Object of(Object node, String path) throws ReflectiveOperationException {
             List<Field> fields = instanceFields(node.getClass());
             Object[] values = new Object[fields.size()];
@@ -264,9 +264,29 @@ public final class ComposeTheme {
                 types[i] = field.getType();
             }
             if (!changed) return node;
-            Constructor<?> constructor = node.getClass().getDeclaredConstructor(types);
-            constructor.setAccessible(true);
-            Object copy = constructor.newInstance(values);
+            Object copy;
+            try {
+                Constructor<?> constructor = node.getClass().getDeclaredConstructor(types);
+                constructor.setAccessible(true);
+                copy = constructor.newInstance(values);
+            } catch (NoSuchMethodException missingFieldConstructor) {
+                // 9.1.94 raw grays and hues are constant groups with () or (byte) constructors.
+                // Build a private copy, then set every color before exposing it to the holder.
+                // Restrict this fallback to primitive color groups; no arbitrary object constructors.
+                for (Class<?> type : types) if (type != long.class) throw missingFieldConstructor;
+                Constructor<?> constructor;
+                Object[] arguments;
+                try {
+                    constructor = node.getClass().getDeclaredConstructor();
+                    arguments = new Object[0];
+                } catch (NoSuchMethodException noDefaultConstructor) {
+                    constructor = node.getClass().getDeclaredConstructor(byte.class);
+                    arguments = new Object[] {(byte) 0};
+                }
+                constructor.setAccessible(true);
+                copy = constructor.newInstance(arguments);
+                for (int i = 0; i < values.length; i++) fields.get(i).setLong(copy, (Long) values[i]);
+            }
             for (int i = 0; i < values.length; i++) {
                 if (!Objects.equals(fields.get(i).get(copy), values[i])) {
                     throw new IllegalStateException(node.getClass().getName() + " doesn't take its fields in name order");

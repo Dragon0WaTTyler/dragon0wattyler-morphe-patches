@@ -36,6 +36,18 @@ public final class ThemeRuntime {
 
     /** Injection point, from PatchSettings.initialize in SpotifyApplication.onCreate. */
     public static void install(Context context) {
+        if (app.spicetify.extension.spotify.settings.PatchSettings.customizationsPaused()) {
+            try {
+                if (supported()) {
+                    load(context, Collections.emptyMap());
+                    ThemeTable.delete(context);
+                    follow(Collections.emptyMap(), Collections.emptyMap(), false);
+                }
+            } catch (Exception error) {
+                Log.w(TAG, "Could not restore stock colors for troubleshooting", error);
+            }
+            return;
+        }
         try {
             ThemeState.migrate(context);
             if (!supported()) return;
@@ -74,6 +86,7 @@ public final class ThemeRuntime {
      * when it can't be applied, or when the image isn't one Android can read.
      */
     public static boolean select(Context context, ThemeState.Selection selection, byte[] image) {
+        if (app.spicetify.extension.spotify.settings.PatchSettings.customizationsPaused()) return false;
         try {
             // The role map is empty only when the theme patch didn't inject its table.
             if (!supported() || ThemeRoleMap.load().isEmpty()) return false;

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
 import app.spicetify.extension.spotify.settings.InstalledPatches;
+import app.spicetify.extension.spotify.settings.PatchSettings;
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -92,6 +93,7 @@ public final class PlayerBridge {
      * turned off.
      */
     static void onCosmos(Object service, boolean extensionsInstalled) {
+        if (PatchSettings.customizationsPaused()) return;
         try {
             Context application = application(service);
             if (application != null) Extensions.setAppContext(application);

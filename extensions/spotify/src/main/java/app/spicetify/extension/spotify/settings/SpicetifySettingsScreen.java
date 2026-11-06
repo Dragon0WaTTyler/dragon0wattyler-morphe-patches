@@ -33,6 +33,7 @@ public final class SpicetifySettingsScreen extends ContextThemeWrapper {
     public static final String PAGE_MARKETPLACE = "marketplace";
     /** The Marketplace, opened on its Extensions tab. */
     public static final String PAGE_EXTENSIONS = "extensions";
+    public static final String PAGE_CONNECTION = "connection";
     private static final String OPEN_PAGES = "app.spicetify.extension.spotify.settings.pages";
     private static final List<SpicetifySettingsScreen> shown = new ArrayList<>();
     private static Application tracked;
@@ -81,6 +82,9 @@ public final class SpicetifySettingsScreen extends ContextThemeWrapper {
         } else if (PAGE_SERVER.equals(page)) {
             title = "Server files";
             buildServer(content);
+        } else if (PAGE_CONNECTION.equals(page)) {
+            title = "Connection troubleshooting";
+            buildConnection(content);
         } else if (PAGE_MARKETPLACE.equals(page) || PAGE_EXTENSIONS.equals(page)) {
             title = "Spicetify Marketplace";
             buildMarketplace(content);
@@ -188,6 +192,8 @@ public final class SpicetifySettingsScreen extends ContextThemeWrapper {
             empty.setPadding(SpotifyStyle.dp(this, 16), SpotifyStyle.dp(this, 16), SpotifyStyle.dp(this, 16), 0);
             content.addView(empty);
         }
+        SpotifyStyle.categoryRow(content, "encore_icon_settings_24", "Connection troubleshooting",
+                "Pause customizations and inspect local connection errors", view -> open(activity, PAGE_CONNECTION));
     }
 
     private boolean category(LinearLayout content, String icon, String title, List<String> items, String page) {
@@ -251,6 +257,29 @@ public final class SpicetifySettingsScreen extends ContextThemeWrapper {
     private void buildMarketplace(LinearLayout content) {
         content.addView(new MarketplaceSettings(this, PAGE_EXTENSIONS.equals(page)),
                 new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
+    }
+
+    private void buildConnection(LinearLayout content) {
+        SpotifyStyle.toggleRow(content, "Pause customizations after restart",
+                "Compare Home and Search with feature behavior paused. Your saved choices are kept. "
+                        + "The app remains modified and signed by your installer.",
+                PatchSettings.pauseRequested(), (button, paused) -> {
+                    PatchSettings.setPauseRequested(paused);
+                    refreshRestartBar();
+                });
+        TextView report = SpotifyStyle.body(this, ConnectionDiagnostics.report(this));
+        report.setTextIsSelectable(true);
+        content.addView(report);
+        SpotifyStyle.actionRow(content, "Refresh checks", "Read local state again; no requests are sent",
+                view -> report.setText(ConnectionDiagnostics.report(this)));
+        SpotifyStyle.actionRow(content, "Copy diagnostic report", "Includes error classes and HTTP status when captured; omits account and session data",
+                view -> {
+                    android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Spicetify diagnostics", ConnectionDiagnostics.report(this)));
+                });
+        content.addView(SpotifyStyle.body(this,
+                "Pause, restart, and retry Home/Search. If only the modified installation fails, session or server validation may still be involved. "
+                        + "This page cannot repair a server rejection or grant offline-download access."));
     }
 
 }

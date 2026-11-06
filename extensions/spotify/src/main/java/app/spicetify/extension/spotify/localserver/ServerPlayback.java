@@ -1,5 +1,7 @@
 package app.spicetify.extension.spotify.localserver;
 
+import app.spicetify.extension.spotify.settings.PatchSettings;
+
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -31,6 +33,7 @@ public final class ServerPlayback {
      * player; senders owned by closed screens are left for the garbage collector.
      */
     public static synchronized void setPlayer(Object value) {
+        if (PatchSettings.customizationsPaused()) return;
         players.removeIf(reference -> reference.get() == null);
         players.add(new WeakReference<>(value));
     }
@@ -61,6 +64,7 @@ public final class ServerPlayback {
      * was sent; a later rejection by Spotify is passed to {@code onError} on the main thread.
      */
     public static String play(List<MusicCatalog.Track> tracks, int index, Consumer<String> onError) {
+        if (PatchSettings.customizationsPaused()) return "Spicetify customizations are paused. Restart after enabling them.";
         Object target = player();
         if (target == null) return "Spotify's player is not ready yet. Try again in a moment.";
         if (index < 0 || index >= tracks.size()) return "This song is no longer in the album.";

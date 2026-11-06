@@ -80,6 +80,26 @@ val assembleSpotifyBridge = tasks.register<JavaExec>("assembleSpotifyBridge") {
 }
 sourceSets.main { resources.srcDir(assembleSpotifyBridge) }
 
+// Optional native integrations stay out of the common settings DEX. In particular,
+// the server filter subclasses a native model whose final flag only that patch changes.
+for ((scope, artifact) in listOf("extensions" to "spotify-extensions.dex", "server" to "spotify-server.dex")) {
+    val source = layout.projectDirectory.dir("src/main/smali/spotify-$scope")
+    val output = layout.buildDirectory.dir("generated/spotify-$scope-bridge")
+    val assembler = tasks.register<JavaExec>("assembleSpotify${scope.replaceFirstChar { it.uppercase() }}Bridge") {
+        description = "Assembles the optional Spotify $scope native bridge"
+        classpath = spotifyBridgeAssembler
+        mainClass.set("com.android.tools.smali.smali.Main")
+        inputs.dir(source)
+        outputs.dir(output)
+        doFirst {
+            val dex = output.get().file("extensions/$artifact").asFile
+            dex.parentFile.mkdirs()
+            args("assemble", source.asFile.absolutePath, "--api", "24", "--output", dex.absolutePath)
+        }
+    }
+    sourceSets.main { resources.srcDir(assembler) }
+}
+
 tasks {
     processResources {
         into("META-INF/licenses/spicetify") {

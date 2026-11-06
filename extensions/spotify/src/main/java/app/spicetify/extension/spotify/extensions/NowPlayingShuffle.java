@@ -1,6 +1,7 @@
 package app.spicetify.extension.spotify.extensions;
 
 import android.util.Log;
+import app.spicetify.extension.spotify.settings.PatchSettings;
 import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
 
@@ -13,6 +14,7 @@ public final class NowPlayingShuffle {
 
     /** Hook N1. Never throws into Spotify. */
     public static void onButton(View button) {
+        if (PatchSettings.customizationsPaused()) return;
         try {
             button.setOnLongClickListener(NowPlayingShuffle::onLongPress);
             // TalkBack long-presses with performLongClick, so it would get nothing from a long-press

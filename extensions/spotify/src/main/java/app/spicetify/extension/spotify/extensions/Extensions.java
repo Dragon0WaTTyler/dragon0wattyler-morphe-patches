@@ -112,7 +112,7 @@ public final class Extensions {
 
     /** Whether the user turned extension {@code id} on; every extension starts off. */
     public static boolean isOn(Context context, String id) {
-        return preferences(context).getBoolean(id, false);
+        return !PatchSettings.customizationsPaused() && preferences(context).getBoolean(id, false);
     }
 
     /** Saves the switch, then tells the extension's listener. */

@@ -2,8 +2,8 @@
 .super Ljava/lang/Object;
 
 # Hooks T1 and T2 pass each context menu's frozen item list here, with the menu's CollectionTrack or
-# CollectionArtist, just before the menu model (Lp/krj;) is built from it. They get back a copy with
-# one Spotify menu item (Lp/jpj;) per {id, title} that ExtensionMenus gives, with Encore's trash icon,
+# CollectionArtist, just before the menu model (Lp/o8m;) is built from it. They get back a copy with
+# one Spotify menu item (Lp/j6m;) per {id, title} that ExtensionMenus gives, with Encore's trash icon,
 # or the original list when there is nothing to add or anything fails. Hook M1's PlaylistMenuProvider
 # builds its item with item too.
 
@@ -41,7 +41,7 @@
 
     new-instance v0, Ljava/util/ArrayList;
     invoke-direct {v0, p0}, Ljava/util/ArrayList;-><init>(Ljava/util/Collection;)V
-    sget-object v3, Lp/b1u;->c:Lp/b1u;
+    sget-object v3, Lp/q8x;->c:Lp/q8x;
 
     invoke-interface {v2}, Ljava/util/List;->iterator()Ljava/util/Iterator;
     move-result-object v2
@@ -52,7 +52,7 @@
     invoke-interface {v2}, Ljava/util/Iterator;->next()Ljava/lang/Object;
     move-result-object v1
     check-cast v1, [Ljava/lang/String;
-    invoke-static {v1, p1, p2, v3}, Lapp/spicetify/extension/spotify/extensions/nativebridge/MenuBridge;->item([Ljava/lang/String;Ljava/lang/Object;ILp/v8u;)Lp/jpj;
+    invoke-static {v1, p1, p2, v3}, Lapp/spicetify/extension/spotify/extensions/nativebridge/MenuBridge;->item([Ljava/lang/String;Ljava/lang/Object;ILp/ugx;)Lp/j6m;
     move-result-object v1
     invoke-virtual {v0, v1}, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
     goto :next_item
@@ -75,20 +75,15 @@
 
 # The Spotify menu item for p0, {id, title}, with the icon p3, whose tap MenuAction hands to
 # ExtensionMenus with p1 as the menu's target, for MenuAction's menu p2. Callers catch what it throws.
-# Lp/jpj; takes exactly one title (the String, with titleRes null) and one icon. Its action is new
-# Lp/ipj;(new Lp/zoj;(1), 1, hpj, MenuAction): category 0 throws in Lp/x2b;->B, and hpj, which only
-# feeds analytics, can't be null.
-# hpj is always new Lp/hpj;(Lp/lq11;->b, Lp/lq11;->c), the pair Lp/qj61;->b gives songdna_about. It
-# logs a tap as a constant ui_navigate hit to spotify:internal:songdna:about, with no entity of ours.
-# Copying another item's hpj would log whatever that item logs: in the artist menu, the first item's
-# is a follow or unfollow of that artist.
+# Native constructors and the songdna_about analytics lambdas are checked against 9.1.94.1929.
+# z5m.c is the native dismiss action category; h6m.a is the default action behavior.
 # 13 locals keep p0 to p2 at v13 to v15, where non-range invokes can reach them; p3 is v16.
-.method public static item([Ljava/lang/String;Ljava/lang/Object;ILp/v8u;)Lp/jpj;
+.method public static item([Ljava/lang/String;Ljava/lang/Object;ILp/ugx;)Lp/j6m;
     .locals 13
-    new-instance v1, Lp/hpj;
-    sget-object v3, Lp/lq11;->b:Lp/lq11;
-    sget-object v4, Lp/lq11;->c:Lp/lq11;
-    invoke-direct {v1, v3, v4}, Lp/hpj;-><init>(Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+    new-instance v1, Lp/g6m;
+    sget-object v3, Lp/sn81;->d1:Lp/sn81;
+    sget-object v4, Lp/sn81;->e1:Lp/sn81;
+    invoke-direct {v1, v3, v4}, Lp/g6m;-><init>(Lp/me30;Lp/me30;)V
 
     const/4 v6, 0x0
     aget-object v4, p0, v6
@@ -98,11 +93,9 @@
     # A tap hands ExtensionMenus the id it gave, still without the prefix added below.
     new-instance v11, Lapp/spicetify/extension/spotify/extensions/nativebridge/MenuAction;
     invoke-direct {v11, v4, p1, p2}, Lapp/spicetify/extension/spotify/extensions/nativebridge/MenuAction;-><init>(Ljava/lang/String;Ljava/lang/Object;I)V
-    const/4 v9, 0x1
-    new-instance v10, Lp/zoj;
-    invoke-direct {v10, v9}, Lp/zoj;-><init>(I)V
-    new-instance v12, Lp/ipj;
-    invoke-direct {v12, v10, v9, v1, v11}, Lp/ipj;-><init>(Lp/xa1;ILp/hpj;Lkotlin/jvm/functions/Function1;)V
+    sget-object v10, Lp/z5m;->c:Lp/z5m;
+    new-instance v12, Lp/i6m;
+    invoke-direct {v12, v10, v1, v11}, Lp/i6m;-><init>(Lp/ijm1;Lp/g6m;Lp/me30;)V
 
     # Menu item ids must be unique, since Compose keys on them.
     const-string v3, "spicetify_"
@@ -118,7 +111,7 @@
     const/4 v9, 0x0
     const/4 v10, 0x1
     const/4 v11, 0x0
-    new-instance v3, Lp/jpj;
-    invoke-direct/range {v3 .. v12}, Lp/jpj;-><init>(Ljava/lang/String;Lp/v8u;Lp/gpj;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;ZLp/e801;Lp/ipj;)V
+    new-instance v3, Lp/j6m;
+    invoke-direct/range {v3 .. v12}, Lp/j6m;-><init>(Ljava/lang/String;Lp/ugx;Lp/f6m;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;ZLp/pm71;Lp/i6m;)V
     return-object v3
 .end method

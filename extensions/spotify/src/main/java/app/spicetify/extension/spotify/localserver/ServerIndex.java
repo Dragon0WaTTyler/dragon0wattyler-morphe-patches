@@ -1,5 +1,7 @@
 package app.spicetify.extension.spotify.localserver;
 
+import app.spicetify.extension.spotify.settings.PatchSettings;
+
 import android.media.MediaMetadataRetriever;
 import android.os.ParcelFileDescriptor;
 import java.util.*;
@@ -92,6 +94,7 @@ public final class ServerIndex {
     }
 
     public static void scanAsync() {
+        if (PatchSettings.customizationsPaused()) return;
         if (android.os.Build.VERSION.SDK_INT < 26) return;
         ServerConfig.Snapshot snapshot = ServerConfig.snapshot();
         if (!snapshot.enabled || snapshot.provider() == ServerConfig.Provider.NONE) return;

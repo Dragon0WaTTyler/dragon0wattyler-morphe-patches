@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
 import app.spicetify.extension.spotify.settings.ServerMusicActivity;
+import app.spicetify.extension.spotify.settings.PatchSettings;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Observer;
 import java.lang.reflect.Constructor;
@@ -69,6 +70,8 @@ public final class LibraryRows {
      * Spotify's servers; otherwise records the window for {@link #page} on the same thread and returns null.
      */
     public static Observable<?> begin(Object request) {
+        requests.remove();
+        if (PatchSettings.customizationsPaused()) return null;
         requests.set(request);
         if (request == null) return null;
         boolean ours = false;
@@ -107,6 +110,7 @@ public final class LibraryRows {
      */
     @SuppressWarnings("unchecked")
     static void changed() {
+        if (PatchSettings.customizationsPaused()) return;
         Object subject = changes;
         if (subject != null) updates.execute(() -> ((Observer<Object>) subject).onNext(Boolean.TRUE));
     }
@@ -143,6 +147,7 @@ public final class LibraryRows {
      * returns every other URI unchanged for Spotify to handle.
      */
     public static String open(Object navigator, String uri) {
+        if (PatchSettings.customizationsPaused()) return uri;
         if (uri == null || !uri.startsWith(URI_PREFIX)) return uri;
         Context context = host(navigator);
         if (context == null) {
@@ -181,11 +186,12 @@ public final class LibraryRows {
      * and leaves only ours once it is selected (the row looks the selected chip up among these).
      */
     public static List<?> chipRow(List<?> selected, List<?> available) {
+        if (PatchSettings.customizationsPaused()) return available;
         if (available == null) return available;
         try {
             Native n = natives();
             if (selected != null && !selected.isEmpty())
-                return n.chip.isInstance(selected.get(0)) ? Collections.singletonList(n.newChip()) : available;
+                return selected.get(0) instanceof ServerFilterMarker ? Collections.singletonList(n.newChip()) : available;
             return failed || chipLabel() == null ? available : n.withChip(available);
         } catch (ReflectiveOperationException | RuntimeException | LinkageError error) {
             disable(error);
@@ -208,6 +214,7 @@ public final class LibraryRows {
 
     /** Keeps our chip out of the filters Spotify remembers across restarts. */
     public static List<?> remembered(List<?> selected) {
+        if (PatchSettings.customizationsPaused()) return selected;
         if (selected == null || selected.isEmpty()) return selected;
         List<Object> kept = null;
         for (int i = 0; i < selected.size(); i++) {
@@ -220,13 +227,13 @@ public final class LibraryRows {
     }
 
     private static boolean isChip(Object filter) {
-        if (filter == null) return false;
-        try {
-            return natives().chip.isInstance(filter);
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError error) {
-            disable(error);
-            return false;
-        }
+        return !PatchSettings.customizationsPaused() && filter instanceof ServerFilterMarker;
+    }
+
+    /** Keep Spotify's Courses chip distinct from our native-compatible subclass, including equals direction. */
+    public static int filterEquality(Object left, Object right) {
+        boolean first = left instanceof ServerFilterMarker, second = right instanceof ServerFilterMarker;
+        return first || second ? (first && second ? 1 : 0) : -1;
     }
 
     /** The provider's name while server rows exist, or null when there is nothing to filter to. */
@@ -240,7 +247,7 @@ public final class LibraryRows {
     public static Observable<?> page(Observable<?> pages) {
         Object request = requests.get();
         requests.remove();
-        if (pages == null || request == null || failed || !ServerConfig.snapshot().enabled) return pages;
+        if (PatchSettings.customizationsPaused() || pages == null || request == null || failed || !ServerConfig.snapshot().enabled) return pages;
         try {
             Native n = natives();
             Request window = n.request(request);
@@ -257,7 +264,7 @@ public final class LibraryRows {
     }
 
     private static Object merge(Object page, Request window, Filter filter, String key) {
-        if (failed) return page;
+        if (PatchSettings.customizationsPaused() || failed) return page;
         try {
             List<Entry> entries = entries(ServerIndex.catalog(), ServerConfig.snapshot().jellyfinConnection(), filter);
             if (entries.isEmpty()) return page;
@@ -353,7 +360,7 @@ public final class LibraryRows {
         }
     }
 
-    /** Reflective access to Spotify 9.1.80's Your Library model. */
+    /** Reflective access to Spotify 9.1.94.1929's Your Library model. */
     private static final class Native {
         final Field skip, length, sort, container, filters;
         final Class<?> root, folder, albumFilter, artistFilter, chip;
@@ -363,24 +370,24 @@ public final class LibraryRows {
         final Field count, range, items, pinned, chips, flag, extra;
         final Constructor<?> loadedPage, page, row, albumExtra;
         final Method window;
-        final Field pageState, pageExtra;
+        final Field pageState, pageExtra, pageUpdates, pageDecorations;
         final Object emptyRange, album, artist, artistExtra;
 
         Native() throws ReflectiveOperationException {
-            Class<?> request = Class.forName("p.z770");
+            Class<?> request = Class.forName("p.yob0");
             skip = request.getField("a");
             length = request.getField("b");
             sort = request.getField("f");
             container = request.getField("j");
             filters = request.getField("k");
-            root = Class.forName("p.kvi");
-            folder = Class.forName("p.jvi");
-            chip = Class.forName("p.q670");
+            root = Class.forName("p.sbl");
+            folder = Class.forName("p.rbl");
+            chip = Class.forName("app.spicetify.extension.spotify.localserver.nativebridge.ServerLibraryFilter");
             chipConstructor = chip.getConstructor(List.class);
-            noExtra = Class.forName("p.iwi").getField("a").get(null);
-            albumFilter = Class.forName("p.e670");
-            artistFilter = Class.forName("p.k670");
-            loaded = Class.forName("p.j290");
+            noExtra = Class.forName("p.bdl").getField("a").get(null);
+            albumFilter = Class.forName("p.jmb0");
+            artistFilter = Class.forName("p.qmb0");
+            loaded = Class.forName("p.wpd0");
             count = loaded.getField("a");
             range = loaded.getField("b");
             items = loaded.getField("c");
@@ -388,23 +395,25 @@ public final class LibraryRows {
             chips = loaded.getField("e");
             flag = loaded.getField("f");
             extra = loaded.getField("g");
-            Class<?> rangeType = Class.forName("p.m740");
-            Class<?> state = Class.forName("p.c290");
+            Class<?> rangeType = Class.forName("p.jb80");
+            Class<?> state = Class.forName("p.ppd0");
             loadedPage = loaded.getConstructor(int.class, rangeType, ArrayList.class, List.class, List.class, boolean.class, int.class);
-            Class<?> pageType = Class.forName("p.ou70");
-            Class<?> pageExtraType = Class.forName("p.kwi");
-            page = pageType.getConstructor(state, pageExtraType);
+            Class<?> pageType = Class.forName("p.dec0");
+            Class<?> pageExtraType = Class.forName("p.ddl");
+            page = pageType.getConstructor(state, pageExtraType, List.class, List.class);
             pageState = pageType.getField("a");
             pageExtra = pageType.getField("b");
-            window = Class.forName("p.afl0").getMethod("p0", int.class, int.class);
+            pageUpdates = pageType.getField("c");
+            pageDecorations = pageType.getField("d");
+            window = Class.forName("p.jjh1").getMethod("Q", int.class, int.class);
             emptyRange = rangeType.getField("d").get(null);
-            Class<?> type = Class.forName("p.ypu");
+            Class<?> type = Class.forName("p.l0y");
             album = enumConstant(type, "ALBUM");
             artist = enumConstant(type, "ARTIST");
-            Class<?> extraType = Class.forName("p.ugx");
-            row = Class.forName("p.iic1").getConstructor(String.class, String.class, boolean.class, String.class, type, String.class, extraType, int.class);
-            albumExtra = Class.forName("p.uw2").getConstructor(String.class, int.class, boolean.class, boolean.class);
-            artistExtra = Class.forName("p.ao5").getField("a").get(null);
+            Class<?> extraType = Class.forName("p.uw00");
+            row = Class.forName("p.bol1").getConstructor(String.class, String.class, boolean.class, String.class, type, String.class, extraType, int.class);
+            albumExtra = Class.forName("p.n73").getConstructor(String.class, int.class, boolean.class, boolean.class);
+            artistExtra = Class.forName("p.xk6").getConstructor(boolean.class, int.class, int.class).newInstance(false, 0, 0);
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
@@ -422,12 +431,12 @@ public final class LibraryRows {
 
         boolean chipSelected(List<?> selected) {
             if (selected == null) return false;
-            for (Object filter : selected) if (chip.isInstance(filter)) return true;
+            for (Object filter : selected) if (filter instanceof ServerFilterMarker) return true;
             return false;
         }
 
         List<?> withChip(List<?> chips) throws ReflectiveOperationException {
-            for (Object chip : chips) if (this.chip.isInstance(chip)) return chips;
+            for (Object chip : chips) if (chip instanceof ServerFilterMarker) return chips;
             List<Object> result = new ArrayList<>(chips);
             result.add(newChip());
             return result;
@@ -445,7 +454,7 @@ public final class LibraryRows {
             Object windowRange = rows.isEmpty() ? emptyRange : window.invoke(null, request.skip, end);
             Object state = loadedPage.newInstance(entries.size(), windowRange, rows, Collections.emptyList(),
                     Collections.singletonList(newChip()), false, 0);
-            return page.newInstance(state, noExtra);
+            return page.newInstance(state, noExtra, Collections.emptyList(), Collections.emptyList());
         }
 
         Filter filter(List<?> selected) {
@@ -485,7 +494,7 @@ public final class LibraryRows {
             if ((request.filters == null || request.filters.isEmpty()) && chipLabel() != null) filters = withChip(filters);
             Object next = loadedPage.newInstance(serverTotal + entries.size(), nextRange, merged,
                     pinned.get(state), filters, flag.getBoolean(state), extra.getInt(state));
-            return page.newInstance(next, pageExtra.get(value));
+            return page.newInstance(next, pageExtra.get(value), pageUpdates.get(value), pageDecorations.get(value));
         }
 
         Object row(Entry entry) throws ReflectiveOperationException {

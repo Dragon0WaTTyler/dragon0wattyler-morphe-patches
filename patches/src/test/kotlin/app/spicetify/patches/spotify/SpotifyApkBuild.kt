@@ -24,7 +24,7 @@ fun main(args: Array<String>) {
     require(output == null || !output.exists()) { "Output already exists: $output" }
 
     ZipFile(bundle).use { archive ->
-        for (name in listOf("classes.dex", "extensions/spotify.mpe", "extensions/spotify-settings.dex")) {
+        for (name in listOf("classes.dex", "extensions/spotify.mpe", "extensions/spotify-settings.dex", "extensions/spotify-extensions.dex", "extensions/spotify-server.dex")) {
             val entry = checkNotNull(archive.getEntry(name)) { "Missing $name in $bundle" }
             archive.getInputStream(entry).verifyDex()
         }
@@ -38,7 +38,7 @@ fun main(args: Array<String>) {
     }
     verifySpotifyNativeBridge(bundle, input)
     val supported = spotify.filter { it.availability?.resolve(InstallerType.STANDARD, ApkArchitecture.ARM64_V8A) != PatchAvailability.UNAVAILABLE }
-    check(supported.size == 6) { "Expected six ported Spotify patches: ${supported.map { it.name }}" }
+    check(supported.size == 8) { "Expected eight ported Spotify patches: ${supported.map { it.name }}" }
     val patches = if (selection == "all") supported.toSet() else setOf(spotify.single { it.name == selection })
     val workspace = Files.createTempDirectory("morphe-spotify-").toFile()
     try {

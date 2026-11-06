@@ -1,5 +1,7 @@
 package app.spicetify.extension.spotify.localserver;
 
+import app.spicetify.extension.spotify.settings.PatchSettings;
+
 import java.io.ByteArrayOutputStream;
 import java.lang.ref.WeakReference;
 
@@ -9,7 +11,7 @@ public final class LocalServerHook {
     private LocalServerHook() {}
 
     public static byte[] appendServerFiles(byte[] original) {
-        if (!ServerConfig.snapshot().enabled || ServerIndex.tracks().isEmpty()) return original;
+        if (PatchSettings.customizationsPaused() || !ServerConfig.snapshot().enabled || ServerIndex.tracks().isEmpty()) return original;
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             if (original != null) out.write(original);
@@ -21,12 +23,14 @@ public final class LocalServerHook {
     }
 
     public static synchronized void onStartListening(Object value, long nativeHandle) {
+        if (PatchSettings.customizationsPaused()) return;
         reader = new WeakReference<>(value); handle = nativeHandle;
     }
     public static synchronized void onStopListening(Object value) {
         if (reader.get() == value) { reader.clear(); handle = 0; }
     }
     static synchronized void requestRescan() {
+        if (PatchSettings.customizationsPaused()) return;
         Object value = reader.get();
         if (value == null) return;
         try {

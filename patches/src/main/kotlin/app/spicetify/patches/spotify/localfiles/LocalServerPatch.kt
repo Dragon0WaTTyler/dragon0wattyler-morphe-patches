@@ -13,7 +13,7 @@ import app.spicetify.patches.spotify.settings.NativeSettingsAbi
 import app.spicetify.patches.spotify.settings.enableSetting
 import app.spicetify.patches.spotify.settings.settingsPatch
 import app.spicetify.patches.spotify.spotifyCompatibility
-import app.spicetify.patches.spotify.requireSpotify9194Port
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import java.util.Properties
@@ -48,29 +48,49 @@ private val serverResourcesPatch = resourcePatch {
 @Suppress("unused")
 val localFilesFromServerPatch = bytecodePatch(
     name = "Local files from a server",
-    description = "UNSUPPORTED on Spotify 9.1.94.1929: Your Library uses a new Flow pipeline; server row and playback bridges have not been ported. " +
-        "Streams audio from an HTTPS WebDAV folder or Jellyfin music library into Local Files and Your Library. " +
+    description = "Streams audio from an HTTPS WebDAV folder or Jellyfin music library into Local Files and Your Library. " +
         "Configure the server in Spicetify settings; playback needs Spotify's Local audio files setting. Experimental; requires byte-range support. " +
         "Not available for root mount installs.",
     default = false,
 ) {
     compatibleWith(spotifyCompatibility)
-    // Dependencies are deliberately omitted while unavailable.
+    dependsOn(settingsPatch, serverResourcesPatch)
+    extendWith("extensions/spotify-server.dex")
 
-    availability { _, _ -> PatchAvailability.UNAVAILABLE }
+    availability { installer, _ ->
+        if (installer == InstallerType.MOUNT) PatchAvailability.UNAVAILABLE else PatchAvailability.DISABLED
+    }
 
     execute {
-        requireSpotify9194Port("Your Library uses a new Flow pipeline; server row and playback bridges have not been ported")
         val snapshot = Properties().apply {
-            NativeSettingsAbi::class.java.getResourceAsStream("/spotify/localfiles/9.1.80.2221.properties")!!.use(::load)
+            NativeSettingsAbi::class.java.getResourceAsStream("/spotify/localfiles/9.1.94.1929.properties")!!.use(::load)
         }
         for (type in snapshot.stringPropertyNames()) {
             val definition = classDefByOrNull(type)
                 ?: throw PatchException("Spotify local-files ABI changed: missing $type")
             if (NativeSettingsAbi.digest(definition) != snapshot.getProperty(type)) {
-                throw PatchException("Spotify local-files ABI changed: use the verified Spotify 9.1.80.2221 APK.")
+                throw PatchException("Spotify local-files ABI changed: use the verified Spotify 9.1.94.1929 APK.")
             }
         }
+        // A distinct native-compatible subclass prevents replacing genuine Courses chips or reusing
+        // their stable IDs. Native label/render branches still recognize the donor type.
+        val course = mutableClassDefBy("Lp/vmb0;")
+        course.accessFlags = course.accessFlags and AccessFlags.FINAL.value.inv()
+        val id = mutableClassDefBy("Lp/onb0;").methods.single {
+            it.name == "getId" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;"
+        }
+        id.accessFlags = id.accessFlags and AccessFlags.FINAL.value.inv()
+        course.methods.single { it.name == "hashCode" && it.parameterTypes.isEmpty() }
+            .let { it.accessFlags = it.accessFlags and AccessFlags.FINAL.value.inv() }
+        val equality = course.methods.single { it.name == "equals" && it.parameterTypes == listOf("Ljava/lang/Object;") }
+        equality.accessFlags = equality.accessFlags and AccessFlags.FINAL.value.inv()
+        equality.addInstructionsWithLabels(0, """
+            invoke-static {p0, p1}, $ROWS->filterEquality(Ljava/lang/Object;Ljava/lang/Object;)I
+            move-result v0
+            if-ltz v0, :native
+            return v0
+        """.trimIndent(), ExternalLabel("native", equality.getInstruction(0)))
+
         enableSetting("serverFiles")
         val reader = mutableClassDefBy(READER)
         val query = reader.methods.single { it.name == "runQuery" && it.parameterTypes.isEmpty() && it.returnType == "[B" }
@@ -114,7 +134,7 @@ val localFilesFromServerPatch = bytecodePatch(
         }
 
         // Track files are served from their own process; there, Spotify's own start-up is skipped.
-        val application = mutableClassDefBy("Lcom/spotify/music/SpotifyApplication;").methods.single {
+        val application = mutableClassDefBy("Lp/k1a1;").methods.single {
             it.name == "onCreate" && it.parameterTypes.isEmpty() && it.returnType == "V"
         }
         requireScratchRegister(application)
@@ -125,7 +145,7 @@ val localFilesFromServerPatch = bytecodePatch(
             return-void
         """.trimIndent(), ExternalLabel("spotify", application.getInstruction(0)))
         // Spotify's memory callback reads state its skipped start-up would have created.
-        val trimMemory = mutableClassDefBy("Lcom/spotify/music/SpotifyApplication;").methods.single {
+        val trimMemory = mutableClassDefBy("Lp/k1a1;").methods.single {
             it.name == "onTrimMemory" && it.parameterTypes == listOf("I") && it.returnType == "V"
         }
         requireScratchRegister(trimMemory)
@@ -137,16 +157,20 @@ val localFilesFromServerPatch = bytecodePatch(
         """.trimIndent(), ExternalLabel("spotify", trimMemory.getInstruction(0)))
 
         // Your Library requests one window of rows at a time; the extension appends server rows to each window.
-        val request = mutableClassDefBy("Lp/ub21;").methods.single {
-            it.name == "z" && it.parameterTypes == listOf("Lp/z770;") && it.returnType == OBSERVABLE
+        val request = mutableClassDefBy("Lp/mcj1;").methods.single {
+            it.name == "m" && it.parameterTypes == listOf("Lp/yob0;") && it.returnType == OBSERVABLE
         }
         val pageReturns = request.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }
-        if (pageReturns.size != 1) throw PatchException("Expected one Your Library request return.")
-        val pages = (pageReturns.single().value as OneRegisterInstruction).registerA
-        request.addInstructions(pageReturns.single().index, """
-            invoke-static/range {v$pages .. v$pages}, $ROWS->page($OBSERVABLE)$OBSERVABLE
-            move-result-object v$pages
-        """.trimIndent())
+        if (pageReturns.size != 5) throw PatchException("Expected five Your Library request exits.")
+        // Four native exits return null for invalid requests. Wrapping those preserves null while also
+        // clearing the captured request; the one normal exit wraps the returned Rx stream.
+        for (exit in pageReturns.reversed()) {
+            val register = (exit.value as OneRegisterInstruction).registerA
+            request.addInstructions(exit.index, """
+                invoke-static/range {v$register .. v$register}, $ROWS->page($OBSERVABLE)$OBSERVABLE
+                move-result-object v$register
+            """.trimIndent())
+        }
         // The request register is reused before the return, so capture it on entry. A request filtered
         // by our chip is answered there without asking Spotify's servers.
         requireScratchRegister(request)
@@ -158,16 +182,16 @@ val localFilesFromServerPatch = bytecodePatch(
         """.trimIndent(), ExternalLabel("native", request.getInstruction(0)))
 
         // The chip row: our chip follows Spotify's, is labelled after the provider, and is never remembered.
-        val chipRow = mutableClassDefBy("Lp/aey;").methods.single {
+        val chipRow = mutableClassDefBy("Lp/hol1;").methods.single {
             it.name == "<init>" && it.parameterTypes == listOf("Ljava/util/List;", "Ljava/util/List;", "I", "I", "Z", "Z")
         }
         chipRow.addInstructions(0, """
             invoke-static/range {p1 .. p2}, $ROWS->chipRow(Ljava/util/List;Ljava/util/List;)Ljava/util/List;
             move-result-object p2
         """.trimIndent())
-        val labels = mutableClassDefBy("Lp/igy;")
+        val labels = mutableClassDefBy("Lp/i020;")
         for ((name, hook) in listOf("a" to "description", "b" to "label")) {
-            val label = labels.methods.single { it.name == name && it.parameterTypes == listOf("Lp/y1j;") && it.returnType == "Ljava/lang/String;" }
+            val label = labels.methods.single { it.name == name && it.parameterTypes == listOf("Lp/wil;") && it.returnType == "Ljava/lang/String;" }
             requireScratchRegister(label)
             label.addInstructionsWithLabels(0, """
                 invoke-static/range {p1 .. p1}, $ROWS->$hook(Ljava/lang/Object;)Ljava/lang/String;
@@ -177,10 +201,10 @@ val localFilesFromServerPatch = bytecodePatch(
             """.trimIndent(), ExternalLabel("native", label.getInstruction(0)))
         }
         // Our rows carry spicetify:server: URIs; opening one shows the server browser instead of a Spotify page.
-        val navigator = mutableClassDefBy("Lp/s4h0;")
+        val navigator = mutableClassDefBy("Lp/lem0;")
         for (open in navigator.methods.filter {
-            it.returnType == "V" && ((it.name == "b" && it.parameterTypes == listOf("Ljava/lang/String;", "Lp/mb40;", "Landroid/os/Bundle;"))
-                || (it.name == "g" && it.parameterTypes == listOf("Ljava/lang/String;")))
+            it.returnType == "V" && ((it.name == "a" && it.parameterTypes == listOf("Ljava/lang/String;", "Lp/kf80;", "Landroid/os/Bundle;"))
+                || (it.name == "h" && it.parameterTypes == listOf("Ljava/lang/String;")))
         }.also { if (it.size != 2) throw PatchException("Expected Spotify's two URI navigation methods.") }) {
             open.addInstructionsWithLabels(0, """
                 invoke-static/range {p0 .. p1}, $ROWS->open(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
@@ -200,13 +224,13 @@ val localFilesFromServerPatch = bytecodePatch(
             if-eqz v0, :native
             return-object v0
         """.trimIndent(), ExternalLabel("native", image.getInstruction(0)))
-        mutableClassDefBy("Lp/ldy;").methods.single { it.name == "b" && it.parameterTypes == listOf("Ljava/util/List;") && it.returnType == "V" }
+        mutableClassDefBy("Lp/pw10;").methods.single { it.name == "b" && it.parameterTypes == listOf("Ljava/util/List;") && it.returnType == "V" }
             .addInstructions(0, """
                 invoke-static/range {p1 .. p1}, $ROWS->remembered(Ljava/util/List;)Ljava/util/List;
                 move-result-object p1
             """.trimIndent())
 
-        val player = mutableClassDefBy("Lp/s2w;")
+        val player = mutableClassDefBy("Lp/cgz;")
         if (player.methods.none { it.name == "a" && it.parameterTypes == listOf("Lcom/spotify/player/model/command/PlayCommand;") })
             throw PatchException("Spotify's player no longer accepts play commands here.")
         val constructor = player.methods.single { it.name == "<init>" }

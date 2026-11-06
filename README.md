@@ -12,7 +12,7 @@ Choose an app to see its features, supported versions, changelog and release dow
 | --- | --- | --- | --- |
 | **YouTube — PocketTube Groups** | Development candidate | [Features, compatibility and limitations](apps/pockettube-groups.md) | [PocketTube V8.1 candidate](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases/tag/v1.0.0-dev.4) |
 | **Blackmagic Camera** | Experimental development candidate | [Features, compatibility and limitations](apps/blackmagic-camera.md) | [Repository prereleases](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases) |
-| **Spotify** | 9.1.94.1929 ARM64 · 6 ported, 2 unavailable | [Features, compatibility and limitations](apps/spotify-spicetify.md) | [Repository prereleases](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases) |
+| **Spotify** | 9.1.94.1929 ARM64 · 8 ported; runtime testing pending | [Features, compatibility and limitations](apps/spotify-spicetify.md) | [Repository prereleases](https://github.com/Dragon0WaTTyler/dragon0wattyler-morphe-patches/releases) |
 
 YouTube, YouTube Music, Reddit, PocketTube, Blackmagic Camera, and Spotify patches share this repository's multi-app source and release stream. App support is grouped by application in Morphe Manager and in the catalog below.
 
@@ -297,7 +297,7 @@ The `dev` branch publishes prereleases through the official Morphe template work
 
 | 🧪&nbsp;9.1.94.1929 |
 | :---: |
-| Experimental Android customization patches; six patches validated offline; device testing pending. |
+| Experimental Android customization patches; eight patches validated offline; device testing pending. |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -305,9 +305,9 @@ The `dev` branch publishes prereleases through the official Morphe template work
 | [Hide Home and Browse ads](#hide-home-and-browse-ads) | Hides image and video brand-ad sections on Home and Browse. Does not suppress audio ads, player ads, or upgrade prompts. Experimental. |  |
 | [Hide Premium tab](#hide-premium-tab) | Hides the Premium navigation tab. Change this in Spicetify settings, then restart Spotify. Does not change your subscription or remove other ads. |  |
 | [Hide player ad cards](#hide-player-ad-cards) | Hides image brand-ad cards and embedded ad pages in Now Playing. Does not suppress audio ads or other player overlays. Experimental. |  |
-| [Local files from a server](#local-files-from-a-server) | UNSUPPORTED on Spotify 9.1.94.1929: Your Library uses a new Flow pipeline; server row and playback bridges have not been ported. Streams audio from an HTTPS WebDAV folder or Jellyfin music library into Local Files and Your Library. Configure the server in Spicetify settings; playback needs Spotify's Local audio files setting. Experimental; requires byte-range support. Not available for root mount installs. |  |
+| [Local files from a server](#local-files-from-a-server) | Streams audio from an HTTPS WebDAV folder or Jellyfin music library into Local Files and Your Library. Configure the server in Spicetify settings; playback needs Spotify's Local audio files setting. Experimental; requires byte-range support. Not available for root mount installs. |  |
 | [Pin shortcuts on Home](#pin-shortcuts-on-home) | Pick playlists, albums or Liked Songs to pin first on Home, or turn on Show only my pins to hide Spotify's other shortcuts. Pins are saved on this device; restart Spotify after changing them. |  |
-| [Spicetify extensions](#spicetify-extensions) | UNSUPPORTED on Spotify 9.1.94.1929: native menus, Home chips and Your Library filters have not been ported. Adds Android versions of Spicetify extensions to the Spicetify Marketplace's Extensions tab, in Spicetify settings, each off until you turn it on. Trash Bin skips the songs and artists you throw away from their menus. Play a random song plays one from all of Spotify or your library, from a Random pill on Home. Shuffle+ plays a playlist, album or Liked Songs in a truly random order when you long-press the shuffle button in Now Playing, choose Shuffle+ this playlist in a playlist's menu, or use its sheet. Hide podcasts hides podcasts and episodes on Home and in Search, and their filters there and in Your Library, and audiobooks unless you turn that off. |  |
+| [Spicetify extensions](#spicetify-extensions) | Adds Android versions of Spicetify extensions to the Spicetify Marketplace's Extensions tab, in Spicetify settings, each off until you turn it on. Trash Bin skips the songs and artists you throw away from their menus. Play a random song plays one from all of Spotify or your library, from a Random pill on Home. Shuffle+ plays a playlist, album or Liked Songs in a truly random order when you long-press the shuffle button in Now Playing, choose Shuffle+ this playlist in a playlist's menu, or use its sheet. Hide podcasts hides podcasts and episodes on Home and in Search, and their filters there and in Your Library, and audiobooks unless you turn that off. |  |
 | [Theme colors](#theme-colors) | Choose a theme, such as OLED, or your own colors in Spicetify settings. Requires Android 11 or later. Some screens and hardcoded colors keep Spotify's colors. |  |
 
 </details>

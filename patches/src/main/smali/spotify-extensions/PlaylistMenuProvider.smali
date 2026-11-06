@@ -1,6 +1,6 @@
 .class public final Lapp/spicetify/extension/spotify/extensions/nativebridge/PlaylistMenuProvider;
 .super Ljava/lang/Object;
-.implements Lp/spj;
+.implements Lp/t6m;
 
 # One more item provider for the list platform's context menu (Lp/sv70;), which serves playlists and
 # Liked Songs. The menu asks each provider for its item with a, as a Flow, or with b when the remote
@@ -35,38 +35,38 @@
     return-object p0
 .end method
 
-# new Lp/yao;(item, 22) is flowOf(item): its collect emits the item, or null, once. The existing
-# providers answer "no item" with new Lp/yao;(null, 22).
-.method public final a(Lp/w9d0;Lp/xvn;)Lp/rry;
+# new Lp/zl00;(item, 9) is flowOf(item): its collect emits the item, or null, once. The existing
+# providers answer "no item" with new Lp/zl00;(null, 9).
+.method public final a(Lp/b9i0;Lp/uoq;)Lp/uc20;
     .locals 3
-    invoke-static {p1}, Lapp/spicetify/extension/spotify/extensions/nativebridge/PlaylistMenuProvider;->item(Lp/w9d0;)Lp/jpj;
+    invoke-static {p1}, Lapp/spicetify/extension/spotify/extensions/nativebridge/PlaylistMenuProvider;->item(Lp/b9i0;)Lp/j6m;
     move-result-object v0
-    new-instance v1, Lp/yao;
-    const/16 v2, 0x16
-    invoke-direct {v1, v0, v2}, Lp/yao;-><init>(Ljava/lang/Object;I)V
+    new-instance v1, Lp/zl00;
+    const/16 v2, 0x9
+    invoke-direct {v1, v0, v2}, Lp/zl00;-><init>(Ljava/lang/Object;B)V
     return-object v1
 .end method
 
 # The suspend form: returns the item, or null, at once, never Lp/gek;->a (COROUTINE_SUSPENDED).
-.method public final b(Lp/w9d0;Lp/fvj;)Ljava/lang/Object;
+.method public final b(Lp/b9i0;Lp/hpq;Lp/lcm;)Ljava/lang/Object;
     .locals 1
-    invoke-static {p1}, Lapp/spicetify/extension/spotify/extensions/nativebridge/PlaylistMenuProvider;->item(Lp/w9d0;)Lp/jpj;
+    invoke-static {p1}, Lapp/spicetify/extension/spotify/extensions/nativebridge/PlaylistMenuProvider;->item(Lp/b9i0;)Lp/j6m;
     move-result-object v0
     return-object v0
 .end method
 
 # The item for the list whose uri is w9d0.a, which is Lp/kn70;->a, the uri the menu was opened for.
 # Null when there is none or anything throws.
-.method private static item(Lp/w9d0;)Lp/jpj;
+.method private static item(Lp/b9i0;)Lp/j6m;
     .locals 4
     :try_start
-    iget-object v0, p0, Lp/w9d0;->a:Ljava/lang/String;
+    iget-object v0, p0, Lp/b9i0;->a:Ljava/lang/String;
     invoke-static {v0}, Lapp/spicetify/extension/spotify/extensions/ExtensionMenus;->playlistItem(Ljava/lang/String;)[Ljava/lang/String;
     move-result-object v1
     if-eqz v1, :none
     const/4 v2, 0x2
-    sget-object v3, Lp/t6u;->c:Lp/t6u;
-    invoke-static {v1, v0, v2, v3}, Lapp/spicetify/extension/spotify/extensions/nativebridge/MenuBridge;->item([Ljava/lang/String;Ljava/lang/Object;ILp/v8u;)Lp/jpj;
+    sget-object v3, Lp/tex;->c:Lp/tex;
+    invoke-static {v1, v0, v2, v3}, Lapp/spicetify/extension/spotify/extensions/nativebridge/MenuBridge;->item([Ljava/lang/String;Ljava/lang/Object;ILp/ugx;)Lp/j6m;
     move-result-object v0
     return-object v0
     :try_end

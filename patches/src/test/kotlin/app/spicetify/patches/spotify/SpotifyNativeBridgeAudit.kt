@@ -22,8 +22,10 @@ internal fun verifySpotifyNativeBridge(bundle: File, apk: File) {
         it.name == "onCreate" && it.parameterTypes.isEmpty() && it.returnType == "V" && it.implementation != null
     }) { "Spotify inherited Application lifecycle missing" }
     ZipFile(bundle).use { zip ->
-        val bridge = zip.getInputStream(zip.getEntry("extensions/spotify-settings.dex")).buffered().use {
-            DexBackedDexFile.fromInputStream(Opcodes.forApi(37), it).classes
+        val bridge = listOf("spotify-settings", "spotify-extensions", "spotify-server").flatMap { scope ->
+            zip.getInputStream(checkNotNull(zip.getEntry("extensions/$scope.dex"))).buffered().use {
+                DexBackedDexFile.fromInputStream(Opcodes.forApi(37), it).classes.toList()
+            }
         }
         fun hierarchy(type: String, seen: MutableSet<String> = mutableSetOf()): List<ClassDef> {
             if (!seen.add(type)) return emptyList()

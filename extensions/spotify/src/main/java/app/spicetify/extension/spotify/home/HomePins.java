@@ -184,6 +184,7 @@ public final class HomePins {
      * patching.
      */
     public static List<Object> plan(String sectionId, ArrayList<?> rows) {
+        if (app.spicetify.extension.spotify.settings.PatchSettings.customizationsPaused()) return null;
         if (rows == null || rows.size() > MAX_SHORTCUTS) return null;
         String[] links = new String[rows.size()];
         String[] ids = new String[rows.size()];

@@ -10,6 +10,8 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import java.util.Properties
 
 private const val EXTENSION = "Lapp/spicetify/extension/spotify/settings/"
@@ -74,8 +76,29 @@ internal val settingsPatch = bytecodePatch {
         }
             .addInstructions(0,
                 "invoke-static/range {p0 .. p0}, ${EXTENSION}PatchSettings;->initialize(Landroid/content/Context;)V")
+
+        // Observe the Throwable Spotify already converts into a Home loading-error event.
+        // No request, exception message, return value, or native error handling is changed.
+        val homeRequest = mutableClassDefBy("Lp/yc81;").methods.single {
+            it.name == "z" && it.parameterTypes == listOf("Lp/ye81;", "Lp/ttd0;", "Ljava/lang/String;",
+                "Z", "Z", "Ljava/lang/String;", "Ljava/lang/String;", "Lp/ocm;")
+        }
+        val site = homeFailureObserverSite(homeRequest.implementation!!.instructions)
+            ?: throw PatchException("Spotify Home error observer ABI changed.")
+        homeRequest.addInstructions(site,
+            "invoke-static {v3}, ${EXTENSION}ConnectionDiagnostics;->recordHomeFailure(Ljava/lang/Throwable;)V")
     }
 }
+
+internal fun homeFailureObserverSite(instructions: List<Instruction>): Int? = instructions.indices.singleOrNull { index ->
+    (instructions[index] as? ReferenceInstruction)?.reference.toString() ==
+        "Lp/q721;->a(Ljava/lang/Object;)Ljava/lang/Throwable;" &&
+        instructions.getOrNull(index + 1)?.let {
+            it.opcode == Opcode.MOVE_RESULT_OBJECT && (it as OneRegisterInstruction).registerA == 3
+        } == true && instructions.getOrNull(index + 2)?.let {
+            it.opcode == Opcode.IF_EQZ && (it as OneRegisterInstruction).registerA == 3
+        } == true
+}?.plus(2)
 
 internal fun BytecodePatchContext.enableSetting(name: String) {
     mutableClassDefBy("${EXTENSION}InstalledPatches;").methods.single { it.name == name }

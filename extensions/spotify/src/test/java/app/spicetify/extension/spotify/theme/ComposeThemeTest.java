@@ -64,6 +64,46 @@ public class ComposeThemeTest {
         public Object d;
     }
 
+    public static final class DefaultConstructedColors {
+        public final long a;
+        public final long b;
+        public DefaultConstructedColors() { a = color(0xFF121212); b = color(0xFF181818); }
+    }
+
+    public static final class ByteConstructedColors {
+        public final long a;
+        public final long b;
+        public ByteConstructedColors(byte variant) {
+            a = color(0xFF121212);
+            b = color(variant == 1 ? 0xFF335577 : 0xFF181818);
+        }
+    }
+
+    @Test public void defaultConstructedRawGroupsAreCopiedWithoutChangingTheirOriginal() {
+        RawColors raw = new RawColors();
+        DefaultConstructedColors original = new DefaultConstructedColors();
+        raw.d = original;
+        ComposeTheme.update(values, false);
+        ComposeTheme.primitives(raw);
+        assertNotSame(original, raw.d);
+        assertEquals(color(0xFF102040), ((DefaultConstructedColors) raw.d).a);
+        assertEquals(original.b, ((DefaultConstructedColors) raw.d).b);
+        assertEquals(color(0xFF121212), original.a);
+        ComposeTheme.update(Collections.emptyMap(), false);
+        assertSame(original, raw.d);
+    }
+
+    @Test public void byteConstructedRawGroupsPreserveAllUnmappedColorsFromTheirActualVariant() {
+        RawColors raw = new RawColors();
+        ByteConstructedColors original = new ByteConstructedColors((byte) 1);
+        raw.d = original;
+        ComposeTheme.update(values, false);
+        ComposeTheme.primitives(raw);
+        assertEquals(color(0xFF102040), ((ByteConstructedColors) raw.d).a);
+        assertEquals(color(0xFF335577), ((ByteConstructedColors) raw.d).b);
+        assertEquals(color(0xFF121212), original.a);
+    }
+
     /** {@code *} marks a field that turns see-through while a background image shows. */
     private static final String TABLE = "a.a=base@FF121212*,a.b=tinted@1AFFFFFF,b.a=accent@FF1ED760;d.a=gray@FF121212*";
 

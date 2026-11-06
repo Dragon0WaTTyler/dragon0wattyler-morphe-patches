@@ -1,6 +1,7 @@
 package app.spicetify.extension.spotify.extensions;
 
 import android.content.Context;
+import app.spicetify.extension.spotify.settings.PatchSettings;
 import android.util.Log;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -70,7 +71,7 @@ public final class ExtensionMenus {
     public static void onTrackItem(String id, Object collectionTrack) {
         try {
             Context context = Extensions.appContext();
-            if (context == null || !TRASH_SONG.equals(id)) return;
+            if (PatchSettings.customizationsPaused() || context == null || !TRASH_SONG.equals(id)) return;
             String uri = link(collectionTrack, TRACK_METADATA);
             if (uri != null) TrashBin.setSong(context, uri, !TrashBin.isSongTrashed(uri));
         } catch (Throwable e) {
@@ -82,7 +83,7 @@ public final class ExtensionMenus {
     public static void onArtistItem(String id, Object collectionArtist) {
         try {
             Context context = Extensions.appContext();
-            if (context == null || !TRASH_ARTIST.equals(id)) return;
+            if (PatchSettings.customizationsPaused() || context == null || !TRASH_ARTIST.equals(id)) return;
             String uri = link(collectionArtist, ARTIST_METADATA);
             if (uri != null) TrashBin.setArtist(context, uri, !TrashBin.isArtistTrashed(uri));
         } catch (Throwable e) {
@@ -113,7 +114,7 @@ public final class ExtensionMenus {
     public static void onPlaylistItem(String id, Object uri) {
         try {
             Context context = Extensions.appContext();
-            if (context == null || !SHUFFLE_PLAYLIST.equals(id) || !(uri instanceof String)) return;
+            if (PatchSettings.customizationsPaused() || context == null || !SHUFFLE_PLAYLIST.equals(id) || !(uri instanceof String)) return;
             ShufflePlus.shuffle(context, (String) uri);
         } catch (Throwable e) {
             Log.w("Spicetify", "Playlist menu item " + id + " failed", e);
